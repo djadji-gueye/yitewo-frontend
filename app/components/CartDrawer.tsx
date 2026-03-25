@@ -18,7 +18,7 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState("");
 
-  const grand = totalPrice + location.deliveryFee;
+  const grand = totalPrice;
 
   const resetFlow = () => {
     setStep("cart");
@@ -42,7 +42,7 @@ export default function CartDrawer() {
       const res: any = await createOrder({
         city:          location.city,
         quarter:       location.quarter,
-        deliveryFee:   location.deliveryFee,
+        deliveryFee:   0,
         totalPrice:    grand,
         customerName:  name || undefined,
         customerPhone: phone || undefined,
@@ -172,8 +172,7 @@ export default function CartDrawer() {
                   <span>Sous-total</span><span>{totalPrice.toLocaleString()} FCFA</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, fontSize: 13, color: "var(--muted)" }}>
-                  <span>Livraison</span>
-                  <span>{location.quarter ? `${location.deliveryFee.toLocaleString()} FCFA` : "—"}</span>
+
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, marginBottom: 16 }}>
                   <span>Total</span>
