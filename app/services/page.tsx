@@ -176,9 +176,26 @@ export default function ServicesPage() {
             )}
 
             {providersLoading ? (
-              <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--muted)" }}>
-                <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
-                <p style={{ fontSize: 14 }}>Chargement des prestataires…</p>
+              <div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ background: "#fff", borderRadius: 20, border: "1px solid var(--border)", overflow: "hidden", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.12}s` }}>
+                      <div style={{ height: 88, background: "#f0f0f0" }} />
+                      <div style={{ width: 68, height: 68, borderRadius: "50%", background: "#e8e8e8", margin: "-34px 0 0 18px", border: "3px solid #fff" }} />
+                      <div style={{ padding: "12px 18px 18px" }}>
+                        <div style={{ width: "60%", height: 16, borderRadius: 6, background: "#f0f0f0", marginBottom: 8 }} />
+                        <div style={{ width: "45%", height: 13, borderRadius: 6, background: "#f5f5f5", marginBottom: 12 }} />
+                        <div style={{ width: "80%", height: 13, borderRadius: 6, background: "#f5f5f5", marginBottom: 14 }} />
+                        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                          <div style={{ width: 80, height: 22, borderRadius: 99, background: "#f0f0f0" }} />
+                          <div style={{ width: 60, height: 22, borderRadius: 99, background: "#f0f0f0" }} />
+                        </div>
+                        <div style={{ width: "100%", height: 38, borderRadius: 11, background: "#f0f0f0" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
               </div>
             ) : filteredProviders.length === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 20px", background: "#fff", borderRadius: 20, border: "1px solid var(--border)" }}>
