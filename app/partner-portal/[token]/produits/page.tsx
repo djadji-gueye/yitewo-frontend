@@ -5,14 +5,25 @@ import { useParams } from "next/navigation";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
-const MEAL_CATEGORIES = [
-  { id: "plat",      label: "Plats",      icon: "🍽️" },
-  { id: "entree",    label: "Entrées",    icon: "🥗" },
-  { id: "boisson",   label: "Boissons",   icon: "🥤" },
-  { id: "dessert",   label: "Desserts",   icon: "🍰" },
-  { id: "snack",     label: "Snacks",     icon: "🥪" },
-  { id: "special",   label: "Spéciaux",   icon: "⭐" },
-];
+const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: string }[]> = {
+  Restaurant: [
+    { id: "plat", label: "Plats", icon: "🍽️" },
+    { id: "entree", label: "Entrées", icon: "🥗" },
+    { id: "boisson", label: "Boissons", icon: "🥤" },
+    { id: "dessert", label: "Desserts", icon: "🍰" },
+    { id: "snack", label: "Snacks", icon: "🥪" },
+    { id: "special", label: "Spéciaux", icon: "⭐" },
+  ],
+  Marchand: [
+    { id: "viande", label: "Viandes & Poissons", icon: "🥩" },
+    { id: "legumes", label: "Légumes & Fruits", icon: "🥦" },
+    { id: "epicerie", label: "Épicerie sèche", icon: "🌾" },
+    { id: "boisson", label: "Boissons", icon: "🥤" },
+    { id: "laitier", label: "Produits laitiers", icon: "🥛" },
+    { id: "hygiene", label: "Hygiène & Entretien", icon: "🧼" },
+    { id: "divers", label: "Maison & Divers", icon: "🏠" },
+  ],
+};
 
 // Génère une image via Pollinations.ai
 function generateImageUrl(name: string) {
@@ -38,25 +49,28 @@ type FormMode = "add" | "edit" | null;
 
 export default function PartnerProductsPage() {
   const params = useParams();
-  const token  = params?.token as string;
+  const token = params?.token as string;
 
-  const [products, setProducts]   = useState<any[]>([]);
-  const [partner, setPartner]     = useState<any>(null);
-  const [loading, setLoading]     = useState(true);
-  const [mode, setMode]           = useState<FormMode>(null);
-  const [editing, setEditing]     = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [partner, setPartner] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState<FormMode>(null);
+  const [editing, setEditing] = useState<any>(null);
   const [filterCat, setFilterCat] = useState("");
 
   // Form state
-  const [name, setName]             = useState("");
-  const [price, setPrice]           = useState("");
-  const [category, setCategory]     = useState("plat");
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl]     = useState("");
-  const [saving, setSaving]         = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [saving, setSaving] = useState(false);
   const [generatingDesc, setGeneratingDesc] = useState(false);
-  const [generatingImg, setGeneratingImg]   = useState(false);
-  const [imagePreview, setImagePreview]     = useState("");
+  const [generatingImg, setGeneratingImg] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
+
+  // Catégories dynamiques selon le type du partenaire
+  const MEAL_CATEGORIES = CATEGORIES_BY_TYPE[partner?.type] ?? CATEGORIES_BY_TYPE["Restaurant"];
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -75,7 +89,8 @@ export default function PartnerProductsPage() {
   useEffect(() => { load(); }, [load]);
 
   const resetForm = () => {
-    setName(""); setPrice(""); setCategory("plat");
+    setName(""); setPrice("");
+    setCategory(CATEGORIES_BY_TYPE[partner?.type]?.[0]?.id ?? "plat");
     setDescription(""); setImageUrl(""); setImagePreview("");
     setEditing(null); setMode(null);
   };
@@ -84,7 +99,7 @@ export default function PartnerProductsPage() {
     setEditing(product);
     setName(product.name);
     setPrice(String(product.price));
-    setCategory(product.category || "plat");
+    setCategory(product.category || MEAL_CATEGORIES[0]?.id || "plat");
     setDescription(product.description || "");
     setImageUrl(product.imageUrl || "");
     setImagePreview(product.imageUrl || "");
@@ -126,7 +141,7 @@ export default function PartnerProductsPage() {
         token,
       };
 
-      const url    = mode === "edit" ? `${BASE}/partner-products/${editing.id}` : `${BASE}/partner-products`;
+      const url = mode === "edit" ? `${BASE}/partner-products/${editing.id}` : `${BASE}/partner-products`;
       const method = mode === "edit" ? "PATCH" : "POST";
 
       const res = await fetch(url, {
@@ -180,7 +195,7 @@ export default function PartnerProductsPage() {
           fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer",
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           Ajouter un produit
         </button>
@@ -384,7 +399,7 @@ export default function PartnerProductsPage() {
                 </div>
                 <textarea
                   value={description} onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description du plat (optionnel — l'IA peut la générer)"
+                  placeholder="Description du produit (optionnel — l'IA peut la générer)"
                   style={{ ...inp, height: 80, resize: "none" }}
                 />
               </div>
