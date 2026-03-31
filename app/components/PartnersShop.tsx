@@ -10,6 +10,7 @@ interface Partner {
   type: string;
   city: string;
   zone?: string;
+  profileImageUrl?: string;
   categories?: { name: string }[];
 }
 
@@ -28,13 +29,20 @@ const TYPE_META: Record<string, { emoji: string; label: string; color: string; b
   },
 };
 
-function getAvatarUrl(name: string, type: string) {
+// function getAvatarUrl(name: string, type: string) {
+//   const seed = encodeURIComponent(name);
+//   const style = type === "Restaurant" ? "rings" : "shapes";
+//   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=ffffff&size=80`;
+// }
+
+function getAvatarUrl(name: string, type: string, profileImageUrl?: string) {
+  if (profileImageUrl) return profileImageUrl;
   const seed = encodeURIComponent(name);
   const style = type === "Restaurant" ? "rings" : "shapes";
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=ffffff&size=80`;
 }
 
-function getCoverPattern(name: string, type: string) {
+function getCoverPattern(name: string, type: string, profileImageUrl?: string) {
   // Génère un pattern SVG unique basé sur le nom
   const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
   const hue2 = (hue + 60) % 360;
@@ -43,7 +51,8 @@ function getCoverPattern(name: string, type: string) {
 
 function PartnerCard({ p, index }: { p: Partner; index: number }) {
   const meta = TYPE_META[p.type] || TYPE_META.Marchand;
-  const avatarUrl = getAvatarUrl(p.name, p.type);
+  // const avatarUrl = getAvatarUrl(p.name, p.type);
+  const avatarUrl = getAvatarUrl(p.name, p.type, p.profileImageUrl);
   const coverPattern = getCoverPattern(p.name, p.type);
   const initials = p.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
@@ -105,7 +114,12 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
               alt={p.name}
               width={46}
               height={46}
-              style={{ borderRadius: "50%" }}
+              style={{
+                borderRadius: "50%",
+                width: 46,
+                height: 46,
+                objectFit: "cover",   // ← important pour les vraies photos
+              }}
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
                 el.style.display = "none";
