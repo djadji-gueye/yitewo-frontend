@@ -7,9 +7,9 @@ import Link from "next/link";
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 export default function PartnerPortalLayout({ children }: { children: React.ReactNode }) {
-  const params  = useParams();
+  const params = useParams();
   const pathname = usePathname();
-  const token   = params?.token as string;
+  const token = params?.token as string;
 
   const [partner, setPartner] = useState<any>(null);
   const [checking, setChecking] = useState(true);
@@ -25,9 +25,10 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
   }, [token]);
 
   const NAV = [
-    { href: `/partner-portal/${token}`,           icon: "⊞", label: "Tableau de bord" },
-    { href: `/partner-portal/${token}/produits`,  icon: "📦", label: "Mes produits" },
+    { href: `/partner-portal/${token}`, icon: "⊞", label: "Tableau de bord" },
+    { href: `/partner-portal/${token}/produits`, icon: "📦", label: "Mes produits" },
     { href: `/partner-portal/${token}/commandes`, icon: "🛒", label: "Mes commandes" },
+    { href: `/partner-portal/${token}/profil`, icon: "⚙️", label: "Mon profil" },
   ];
 
   // ── Loading ───────────────────────────────────────────────
@@ -41,7 +42,7 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
         yite<span style={{ color: "#E8380D" }}>wo</span>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {[0,1,2].map((i) => (
+        {[0, 1, 2].map((i) => (
           <div key={i} style={{
             width: 8, height: 8, borderRadius: "50%", background: "#E8380D",
             animation: "bounce 1.2s ease infinite",
@@ -192,8 +193,8 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
             }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+              <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
             </svg>
             Voir ma boutique
           </a>
