@@ -22,7 +22,7 @@ const FAQS = [
       },
       {
         q: "Puis-je annuler ou modifier ma commande ?",
-        a: "Vous pouvez annuler ou modifier votre commande tant qu'elle n'a pas encore été prise en charge par un livreur. Contactez-nous rapidement sur WhatsApp au +221 77 646 10 35.",
+        a: "Vous pouvez annuler ou modifier votre commande tant qu'elle n'a pas encore été prise en charge par un livreur. Contactez-nous rapidement sur WhatsApp au +221 77 XXX XX XX.",
       },
       {
         q: "Comment suivre ma commande ?",
@@ -95,7 +95,7 @@ const FAQS = [
     items: [
       {
         q: "Comment contacter le service client ?",
-        a: "Vous pouvez nous joindre via WhatsApp au +221 77 646 10 35, disponible du lundi au samedi de 8h à 20h. Vous pouvez aussi utiliser le bouton « Contactez-nous » en bas de chaque page.",
+        a: "Vous pouvez nous joindre via WhatsApp au +221 77 XXX XX XX, disponible du lundi au samedi de 8h à 20h. Vous pouvez aussi utiliser le bouton « Contactez-nous » en bas de chaque page.",
       },
       {
         q: "Que faire si ma commande n'est pas arrivée ?",

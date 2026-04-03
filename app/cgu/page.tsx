@@ -92,7 +92,7 @@ export default function CGUPage() {
           <Section title="11. Contact">
             <p>Pour toute question relative aux présentes CGU, vous pouvez nous contacter :</p>
             <ul style={{ paddingLeft: 20, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
-              <li>Par WhatsApp : <strong>+221 77 646 10 35</strong></li>
+              <li>Par WhatsApp : <strong>+221 77 XXX XX XX</strong></li>
               <li>Via notre site : <Link href="/" style={{ color: "var(--brand)" }}>yitewo-frontend.vercel.app</Link></li>
             </ul>
           </Section>

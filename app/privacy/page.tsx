@@ -39,7 +39,7 @@ export default function PrivacyPage() {
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid var(--border)", padding: "36px 40px", fontSize: 14, lineHeight: 1.8, color: "#333" }}>
 
           <Section title="1. Responsable du traitement">
-            <p>Le responsable du traitement des données collectées via la plateforme Yitewo est la société Yitewo, opérant au Sénégal. Pour toute question relative à vos données personnelles, vous pouvez nous contacter via WhatsApp au <strong>+221 77 646 10 35</strong>.</p>
+            <p>Le responsable du traitement des données collectées via la plateforme Yitewo est la société Yitewo, opérant au Sénégal. Pour toute question relative à vos données personnelles, vous pouvez nous contacter via WhatsApp au <strong>+221 77 XXX XX XX</strong>.</p>
           </Section>
 
           <Section title="2. Données collectées">
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
               <li><strong>Droit d'opposition</strong> : vous opposer au traitement de vos données pour des motifs légitimes.</li>
               <li><strong>Droit à la portabilité</strong> : recevoir vos données dans un format structuré et lisible.</li>
             </ul>
-            <p>Pour exercer ces droits, contactez-nous via WhatsApp au <strong>+221 77 646 10 35</strong>. Nous répondrons dans un délai de 30 jours. Vous pouvez également saisir la <strong>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal si vous estimez que vos droits ne sont pas respectés.</p>
+            <p>Pour exercer ces droits, contactez-nous via WhatsApp au <strong>+221 77 XXX XX XX</strong>. Nous répondrons dans un délai de 30 jours. Vous pouvez également saisir la <strong>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal si vous estimez que vos droits ne sont pas respectés.</p>
           </Section>
 
           <Section title="8. Sécurité des données">
@@ -132,7 +132,7 @@ export default function PrivacyPage() {
           <Section title="12. Contact et réclamations">
             <p>Pour toute question relative à la protection de vos données ou pour exercer vos droits :</p>
             <ul style={{ paddingLeft: 20, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
-              <li>WhatsApp : <strong>+221 77 646 10 35</strong></li>
+              <li>WhatsApp : <strong>+221 77 XXX XX XX</strong></li>
               <li>Site : <Link href="/" style={{ color: "var(--brand)" }}>yitewo-frontend.vercel.app</Link></li>
             </ul>
             <p style={{ marginTop: 10 }}>En cas de réclamation non résolue, vous pouvez contacter la <strong>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal, autorité de contrôle compétente en matière de protection des données personnelles.</p>
