@@ -15,11 +15,11 @@ export type Opportunity = {
 };
 
 export const CATEGORY_META: Record<OpportunityCategory, { label: string; icon: string; color: string; bg: string }> = {
-  immobilier: { label: "Immobilier",  icon: "🏠", color: "#b45309", bg: "#fef3c7" },
-  emploi:     { label: "Emploi",      icon: "💼", color: "#1d4ed8", bg: "#dbeafe" },
-  service:    { label: "Service",     icon: "🔧", color: "#6d28d9", bg: "#ede9fe" },
-  commerce:   { label: "Commerce",    icon: "🛒", color: "#047857", bg: "#d1fae5" },
-  formation:  { label: "Formation",   icon: "📚", color: "#be185d", bg: "#fce7f3" },
+  immobilier: { label: "Immobilier", icon: "🏠", color: "#b45309", bg: "#fef3c7" },
+  emploi: { label: "Emploi", icon: "💼", color: "#1d4ed8", bg: "#dbeafe" },
+  service: { label: "Service", icon: "🔧", color: "#6d28d9", bg: "#ede9fe" },
+  commerce: { label: "Commerce", icon: "🛒", color: "#047857", bg: "#d1fae5" },
+  formation: { label: "Formation", icon: "📚", color: "#be185d", bg: "#fce7f3" },
 };
 
 export const OPPORTUNITIES: Opportunity[] = [
@@ -31,7 +31,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     description: "Terrain bien situé dans le quartier résidentiel de Villeneuve, proche toutes commodités. Papier cadastral disponible. Idéal pour construction de villa.",
     details: ["300 m² (15 m x 20 m)", "Eau & Électricité disponibles", "Papier cadastral", "Prix négociable"],
     price: "Prix à négocier",
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     image: "/images/terrain-1.png",
     badge: "Nouveau",
     postedAt: "2026-03-10",
@@ -44,7 +44,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     description: "Grand terrain de 500 m² avec titre foncier en zone résidentielle calme. Accès direct à la voie principale.",
     details: ["500 m²", "Titre foncier", "Eau & Électricité", "Zone résidentielle"],
     price: "Prix à négocier",
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     image: "/images/terrain-1.png",
     postedAt: "2026-03-05",
   },
@@ -55,7 +55,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     location: "Dakar (Plateau, Almadies, Mermoz)",
     description: "Yitewo recrute des livreurs à moto sérieux et disponibles pour assurer les livraisons à domicile partout au Sénégal. Travail flexible, paiement hebdomadaire.",
     details: ["Moto personnelle requise", "Smartphone Android ou iOS", "Disponible matin ou soir", "Paiement chaque semaine"],
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     badge: "Urgent",
     postedAt: "2026-03-15",
   },
@@ -66,7 +66,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     location: "Saint-Louis (Sor, Île, Hydro…)",
     description: "Nous recherchons des livreurs à vélo ou moto pour couvrir Saint-Louis et ses environs. Débutants acceptés si sérieux.",
     details: ["Vélo ou moto", "Connaissance de la ville", "Disponibilité partielle acceptée", "Formation assurée"],
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     badge: "Urgent",
     postedAt: "2026-03-14",
   },
@@ -77,7 +77,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     location: "Sénégal",
     description: "Vous êtes épicier, boutiquier ou commerçant ? Référencez votre boutique sur Yitewo et recevez des commandes directement sur WhatsApp, sans commission.",
     details: ["Zéro commission sur les ventes", "Visibilité auprès de milliers de clients", "Inscription en 5 min", "Support dédié"],
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     postedAt: "2026-03-01",
   },
   {
@@ -88,7 +88,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     description: "Formation pratique au marketing digital pour entrepreneurs, vendeurs et porteurs de projet. Réseaux sociaux, WhatsApp Business, publicité en ligne.",
     details: ["4 semaines", "Présentiel + en ligne", "Attestation de formation", "Places limitées à 15 participants"],
     price: "25 000 FCFA",
-    contact: "221776461035",
+    contact: "22177XXXXXXX",
     badge: "Nouveau",
     postedAt: "2026-03-12",
   },

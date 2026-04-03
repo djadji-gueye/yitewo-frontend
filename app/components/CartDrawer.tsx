@@ -40,19 +40,19 @@ export default function CartDrawer() {
     setLoading(true);
     try {
       const res: any = await createOrder({
-        city:          location.city,
-        quarter:       location.quarter,
-        deliveryFee:   0,
-        totalPrice:    grand,
-        customerName:  name || undefined,
+        city: location.city,
+        quarter: location.quarter,
+        deliveryFee: 0,
+        totalPrice: grand,
+        customerName: name || undefined,
         customerPhone: phone || undefined,
-        note:          note || undefined,
-        partnerId:     partnerId || undefined,
+        note: note || undefined,
+        partnerId: partnerId || undefined,
         items: items.map((i) => ({
-          productId:        i.isPartnerProduct ? undefined : String(i.id),
+          productId: i.isPartnerProduct ? undefined : String(i.id),
           partnerProductId: i.isPartnerProduct ? String(i.id) : undefined,
-          quantity:         i.quantity,
-          unitPrice:        i.price,
+          quantity: i.quantity,
+          unitPrice: i.price,
         })),
       });
       setOrderId(res.id);
@@ -93,7 +93,7 @@ export default function CartDrawer() {
               <button onClick={() => setStep(step === "contact" ? "cart" : "contact")}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M19 12H5M12 5l-7 7 7 7"/>
+                  <path d="M19 12H5M12 5l-7 7 7 7" />
                 </svg>
               </button>
             )}
@@ -107,7 +107,7 @@ export default function CartDrawer() {
           </div>
           <button onClick={handleClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -147,7 +147,7 @@ export default function CartDrawer() {
                       </div>
                       <button onClick={() => removeItem(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", padding: 4 }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                          <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
                         </svg>
                       </button>
                     </div>
@@ -243,7 +243,7 @@ export default function CartDrawer() {
                   <>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                       style={{ animation: "spin 1s linear infinite" }}>
-                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                     </svg>
                     Envoi en cours…
                   </>
@@ -302,7 +302,7 @@ export default function CartDrawer() {
                 padding: "11px 24px", borderRadius: 99,
                 fontFamily: "Syne", fontWeight: 700, fontSize: 14, cursor: "pointer",
               }}>Réessayer</button>
-              <a href={`https://wa.me/221776461035?text=${encodeURIComponent("Bonjour, j'essaie de commander mais le site ne fonctionne pas.")}`}
+              <a href={`https://wa.me/22177XXXXXXX?text=${encodeURIComponent("Bonjour, j'essaie de commander mais le site ne fonctionne pas.")}`}
                 target="_blank" rel="noopener noreferrer"
                 style={{
                   background: "var(--green-light)", color: "var(--green)", border: "1px solid #b8f0d8",

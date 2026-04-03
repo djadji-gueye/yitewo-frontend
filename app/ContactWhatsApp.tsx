@@ -1,7 +1,7 @@
 "use client";
 
 export default function ContactWhatsApp({ item }: any) {
-    const phone = "221776461035";
+    const phone = "22177XXXXXXX";
 
     const contact = () => {
         const msg = `Bonjour,
