@@ -6,10 +6,10 @@ import { submitOpportunity } from "@/lib/api";
 
 const CATS = [
   { value: "IMMOBILIER", label: "Immobilier", icon: "🏠", desc: "Terrain, maison, location…" },
-  { value: "EMPLOI",     label: "Emploi",     icon: "💼", desc: "Recrutement, mission, CDD…" },
-  { value: "SERVICE",    label: "Service",    icon: "🔧", desc: "Prestation, artisan, pro…" },
-  { value: "COMMERCE",   label: "Commerce",   icon: "🛒", desc: "Vente, boutique, produit…" },
-  { value: "FORMATION",  label: "Formation",  icon: "📚", desc: "Cours, atelier, coaching…" },
+  { value: "EMPLOI", label: "Emploi", icon: "💼", desc: "Recrutement, mission, CDD…" },
+  { value: "SERVICE", label: "Service", icon: "🔧", desc: "Prestation, artisan, pro…" },
+  { value: "COMMERCE", label: "Commerce", icon: "🛒", desc: "Vente, boutique, produit…" },
+  { value: "FORMATION", label: "Formation", icon: "📚", desc: "Cours, atelier, coaching…" },
 ];
 
 type Status = "form" | "loading" | "success" | "error";
@@ -21,6 +21,8 @@ export default function PosterPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageError, setImageError] = useState(false);
   const [status, setStatus] = useState<Status>("form");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -37,6 +39,7 @@ export default function PosterPage() {
         description: description.trim(),
         price: price.trim() || undefined,
         contact: contact.trim(),
+        imageUrl: imageUrl.trim() || undefined,
       });
       setStatus("success");
     } catch (e: any) {
@@ -57,22 +60,16 @@ export default function PosterPage() {
           textAlign: "center", maxWidth: 480, width: "100%",
           border: "1px solid var(--border)", boxShadow: "var(--shadow-card)",
         }}>
-          {/* Icône animée */}
           <div style={{
             width: 80, height: 80, borderRadius: "50%",
             background: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 36, margin: "0 auto 24px",
             boxShadow: "0 8px 24px rgba(16,185,129,0.2)",
-          }}>
-            ✅
-          </div>
-
+          }}>✅</div>
           <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 24, marginBottom: 12 }}>
             Annonce soumise !
           </h2>
-
-          {/* Timeline de validation */}
           <div style={{
             background: "var(--surface)", borderRadius: 16,
             padding: "20px 24px", marginBottom: 24, textAlign: "left",
@@ -86,34 +83,22 @@ export default function PosterPage() {
               { icon: "✅", label: "Une fois validée, elle apparaît dans la liste publique", done: false },
               { icon: "📲", label: "Vous pouvez être contacté au numéro fourni", done: false },
             ].map((step, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "flex-start", gap: 12,
-                marginBottom: i < 3 ? 12 : 0,
-              }}>
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 3 ? 12 : 0 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                   background: step.done ? "var(--green-light)" : "var(--brand-light)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 14,
-                }}>
-                  {step.icon}
-                </div>
-                <p style={{
-                  fontSize: 13, lineHeight: 1.5, paddingTop: 4,
-                  color: step.done ? "var(--green)" : "var(--muted)",
-                  fontWeight: step.done ? 600 : 400,
-                }}>
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
+                }}>{step.icon}</div>
+                <p style={{ fontSize: 13, lineHeight: 1.5, paddingTop: 4, color: step.done ? "var(--green)" : "var(--muted)", fontWeight: step.done ? 600 : 400 }}>
                   {step.label}
                 </p>
               </div>
             ))}
           </div>
-
           <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.6, marginBottom: 28 }}>
             Vous avez fourni <strong>{contact}</strong> comme contact —
             notre équipe vous contactera en cas de question.
           </p>
-
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/opportunities" style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -127,7 +112,7 @@ export default function PosterPage() {
               onClick={() => {
                 setStatus("form");
                 setTitle(""); setCategory(""); setLocation("");
-                setPrice(""); setDescription(""); setContact("");
+                setPrice(""); setDescription(""); setContact(""); setImageUrl("");
               }}
               style={{
                 background: "none", border: "2px solid var(--border)",
@@ -162,10 +147,7 @@ export default function PosterPage() {
           }}>
             ← Retour aux annonces
           </Link>
-          <h1 style={{
-            fontFamily: "Syne", fontWeight: 800,
-            fontSize: "clamp(24px, 4vw, 36px)", color: "#fff", marginBottom: 8,
-          }}>
+          <h1 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: "clamp(24px, 4vw, 36px)", color: "#fff", marginBottom: 8 }}>
             Publier une annonce
           </h1>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -188,13 +170,12 @@ export default function PosterPage() {
         {/* Step indicator */}
         <div style={{
           display: "flex", gap: 0, marginBottom: 24,
-          background: "#fff", borderRadius: 12, border: "1px solid var(--border)",
-          overflow: "hidden",
+          background: "#fff", borderRadius: 12, border: "1px solid var(--border)", overflow: "hidden",
         }}>
           {[
             { n: "1", label: "Catégorie", done: !!category },
-            { n: "2", label: "Détails",   done: !!(title && location) },
-            { n: "3", label: "Contact",   done: !!contact },
+            { n: "2", label: "Détails", done: !!(title && location) },
+            { n: "3", label: "Contact", done: !!contact },
           ].map((s, i, arr) => (
             <div key={s.n} style={{
               flex: 1, padding: "10px 4px", textAlign: "center",
@@ -250,13 +231,11 @@ export default function PosterPage() {
               <input
                 value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex : Terrain à vendre – Hydrobase 500m²"
-                style={inputStyle}
-                maxLength={100}
+                style={inputStyle} maxLength={100}
               />
-              <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "right", marginTop: 4 }}>
-                {title.length}/100
-              </p>
+              <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "right", marginTop: 4 }}>{title.length}/100</p>
             </Field>
+
             <Field label="Localisation *" hint="Quartier, ville">
               <input
                 value={location} onChange={(e) => setLocation(e.target.value)}
@@ -264,6 +243,7 @@ export default function PosterPage() {
                 style={inputStyle}
               />
             </Field>
+
             <Field label="Prix / Budget" hint="Laissez vide si non applicable">
               <input
                 value={price} onChange={(e) => setPrice(e.target.value)}
@@ -271,15 +251,62 @@ export default function PosterPage() {
                 style={inputStyle}
               />
             </Field>
+
             <Field label="Description *" hint="Minimum 30 caractères recommandés">
               <textarea
                 value={description} onChange={(e) => setDescription(e.target.value)}
-                placeholder="Décrivez votre annonce en détail : caractéristiques, conditions, disponibilité, ce qui rend cette offre unique…"
+                placeholder="Décrivez votre annonce en détail : caractéristiques, conditions, disponibilité…"
                 style={{ ...inputStyle, height: 130, resize: "vertical" }}
               />
               <p style={{ fontSize: 11, color: description.length < 30 ? "var(--brand)" : "var(--green)", textAlign: "right", marginTop: 4 }}>
                 {description.length} caractères{description.length < 30 ? " (minimum 30 recommandé)" : " ✓"}
               </p>
+            </Field>
+
+            {/* ── Photo ─────────────────────────────────────── */}
+            <Field label="Photo" hint="Optionnel — lien vers une image">
+              <input
+                value={imageUrl}
+                onChange={(e) => { setImageUrl(e.target.value); setImageError(false); }}
+                placeholder="https://… (lien Google Photos, WhatsApp Web, etc.)"
+                style={inputStyle}
+              />
+              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, lineHeight: 1.5 }}>
+                💡 Depuis WhatsApp Web : clic droit sur votre photo → "Copier l'adresse de l'image"
+              </p>
+
+              {/* Preview */}
+              {imageUrl && !imageError && (
+                <div style={{ marginTop: 10, borderRadius: 10, overflow: "hidden", height: 160, background: "var(--surface)", position: "relative" }}>
+                  <img
+                    src={imageUrl}
+                    alt="Aperçu"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={() => setImageError(true)}
+                  />
+                  <button
+                    onClick={() => { setImageUrl(""); setImageError(false); }}
+                    style={{
+                      position: "absolute", top: 8, right: 8,
+                      background: "rgba(0,0,0,0.6)", border: "none", borderRadius: "50%",
+                      width: 28, height: 28, cursor: "pointer", color: "#fff", fontSize: 14,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >✕</button>
+                  <div style={{
+                    position: "absolute", bottom: 8, left: 8,
+                    background: "rgba(16,185,129,0.9)", borderRadius: 99,
+                    padding: "3px 10px", fontSize: 11, color: "#fff", fontWeight: 600,
+                  }}>
+                    ✓ Photo ajoutée
+                  </div>
+                </div>
+              )}
+              {imageUrl && imageError && (
+                <div style={{ marginTop: 8, padding: "8px 12px", background: "#fee2e2", borderRadius: 8, fontSize: 12, color: "#991b1b" }}>
+                  ❌ Lien invalide ou image inaccessible — vérifiez l'URL
+                </div>
+              )}
             </Field>
           </div>
         </div>
@@ -300,11 +327,7 @@ export default function PosterPage() {
 
         {/* Error */}
         {status === "error" && (
-          <div style={{
-            background: "#fee2e2", border: "1px solid #fca5a5",
-            borderRadius: 12, padding: "12px 16px", marginBottom: 16,
-            fontSize: 13, color: "#991b1b",
-          }}>
+          <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#991b1b" }}>
             ❌ {errorMsg}
           </div>
         )}
@@ -328,14 +351,14 @@ export default function PosterPage() {
             <>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                 style={{ animation: "spin 1s linear infinite" }}>
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
               </svg>
               Envoi en cours…
             </>
           ) : (
             <>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
               Soumettre pour validation
             </>
@@ -346,13 +369,12 @@ export default function PosterPage() {
         {!canSend && (
           <p style={{ textAlign: "center", color: "var(--muted)", fontSize: 12, marginTop: 10 }}>
             {!category ? "👆 Choisissez une catégorie" :
-             !title ? "✍️ Ajoutez un titre" :
-             !location ? "📍 Indiquez la localisation" :
-             !description ? "📝 Rédigez une description" :
-             !contact ? "📞 Ajoutez votre contact" : ""}
+              !title ? "✍️ Ajoutez un titre" :
+                !location ? "📍 Indiquez la localisation" :
+                  !description ? "📝 Rédigez une description" :
+                    !contact ? "📞 Ajoutez votre contact" : ""}
           </p>
         )}
-
       </div>
     </div>
   );

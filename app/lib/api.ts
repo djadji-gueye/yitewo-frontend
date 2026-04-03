@@ -53,6 +53,7 @@ export interface SubmitOpportunityPayload {
   description: string;
   price?: string;
   contact: string;
+  imageUrl?: string;
 }
 export const submitOpportunity = (data: SubmitOpportunityPayload) =>
   request('/opportunities/submit', { method: 'POST', body: JSON.stringify(data) });
