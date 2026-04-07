@@ -268,12 +268,16 @@ export default function PosterPage() {
               <input
                 value={imageUrl}
                 onChange={(e) => { setImageUrl(e.target.value); setImageError(false); }}
-                placeholder="https://… (lien Google Photos, WhatsApp Web, etc.)"
+                placeholder="https://imgur.com/… ou Google Photos…"
                 style={inputStyle}
               />
-              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, lineHeight: 1.5 }}>
-                💡 Depuis WhatsApp Web : clic droit sur votre photo → "Copier l'adresse de l'image"
-              </p>
+              <div style={{ marginTop: 6, padding: "10px 12px", background: "var(--surface)", borderRadius: 8, fontSize: 11, color: "var(--muted)", lineHeight: 1.7 }}>
+                <strong style={{ color: "var(--text)" }}>💡 Comment obtenir un lien photo :</strong><br />
+                • <strong>Imgur.com</strong> (plus simple) : glissez votre photo sur le site → clic droit sur l'image → "Copier l'adresse"<br />
+                • <strong>Google Photos</strong> : ouvrir la photo → ⋮ → Partager → Créer un lien<br />
+                • <strong>Google Drive</strong> : partager en accès public → copier le lien<br />
+                <span style={{ color: "#ef4444" }}>⚠️ Les liens WhatsApp (blob:https://…) ne fonctionnent pas</span>
+              </div>
 
               {/* Preview */}
               {imageUrl && !imageError && (
