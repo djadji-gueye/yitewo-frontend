@@ -7,15 +7,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 const CATEGORY_META: Record<string, { label: string; icon: string; color: string; bg: string }> = {
-  IMMOBILIER: { label: "Immobilier",  icon: "🏠", color: "#b45309", bg: "#fef3c7" },
-  EMPLOI:     { label: "Emploi",      icon: "💼", color: "#1d4ed8", bg: "#dbeafe" },
-  SERVICE:    { label: "Service",     icon: "🔧", color: "#6d28d9", bg: "#ede9fe" },
-  COMMERCE:   { label: "Commerce",    icon: "🛒", color: "#047857", bg: "#d1fae5" },
-  FORMATION:  { label: "Formation",   icon: "📚", color: "#be185d", bg: "#fce7f3" },
+  IMMOBILIER: { label: "Immobilier", icon: "🏠", color: "#b45309", bg: "#fef3c7" },
+  EMPLOI: { label: "Emploi", icon: "💼", color: "#1d4ed8", bg: "#dbeafe" },
+  SERVICE: { label: "Service", icon: "🔧", color: "#6d28d9", bg: "#ede9fe" },
+  COMMERCE: { label: "Commerce", icon: "🛒", color: "#047857", bg: "#d1fae5" },
+  FORMATION: { label: "Formation", icon: "📚", color: "#be185d", bg: "#fce7f3" },
 };
 
 const CITIES = ["Dakar", "Saint-Louis", "Thiès", "Ziguinchor"];
-const LIMIT  = 12;
+const LIMIT = 12;
 
 function daysSince(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -43,24 +43,24 @@ function OpportunitiesContent() {
   const searchParams = useSearchParams();
 
   // State
-  const [data, setData]         = useState<any>(null);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState(searchParams.get("search") || "");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
-  const [city, setCity]         = useState(searchParams.get("city") || "");
-  const [source, setSource]     = useState(searchParams.get("source") || ""); // "external" | "internal" | ""
-  const [page, setPage]         = useState(Number(searchParams.get("page") || 1));
+  const [city, setCity] = useState(searchParams.get("city") || "");
+  const [source, setSource] = useState(searchParams.get("source") || ""); // "external" | "internal" | ""
+  const [page, setPage] = useState(Number(searchParams.get("page") || 1));
   const [searchInput, setSearchInput] = useState(search);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("page",  String(page));
+      params.set("page", String(page));
       params.set("limit", String(LIMIT));
-      if (category) params.set("category",   category);
-      if (city)     params.set("city",        city);
-      if (search)   params.set("search",      search);
+      if (category) params.set("category", category);
+      if (city) params.set("city", city);
+      if (search) params.set("search", search);
       if (source === "external") params.set("isExternal", "true");
       if (source === "internal") params.set("isExternal", "false");
 
@@ -80,8 +80,8 @@ function OpportunitiesContent() {
   const applyFilter = (key: string, val: string) => {
     setPage(1);
     if (key === "category") setCategory(val);
-    if (key === "city")     setCity(val);
-    if (key === "source")   setSource(val);
+    if (key === "city") setCity(val);
+    if (key === "source") setSource(val);
   };
 
   const handleSearch = () => {
@@ -123,7 +123,7 @@ function OpportunitiesContent() {
           <div style={{ position: "relative", maxWidth: 500 }}>
             <svg style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }}
               width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
               value={searchInput}
@@ -159,7 +159,7 @@ function OpportunitiesContent() {
             boxShadow: "0 4px 16px rgba(232,56,13,0.4)",
           }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Publier
           </Link>
@@ -212,9 +212,9 @@ function OpportunitiesContent() {
             <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Source</span>
             <div style={{ display: "flex", gap: 6 }}>
               {[
-                { val: "",         label: "Toutes" },
+                { val: "", label: "Toutes" },
                 { val: "internal", label: "✍️ Yitewo" },
-                { val: "external", label: "🔗 Externes" },
+                //   { val: "external", label: "🔗 Externes" },
               ].map((s) => (
                 <button key={s.val} onClick={() => applyFilter("source", s.val)} style={filterPill(source === s.val)}>
                   {s.label}
@@ -335,15 +335,17 @@ function OpportunitiesContent() {
                       {opp.title}
                     </h3>
 
-                    <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12,
-                      display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    <p style={{
+                      fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12,
+                      display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden"
+                    }}>
                       {opp.description}
                     </p>
 
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
                       <span style={{ fontSize: 12, color: "var(--muted)", display: "flex", alignItems: "center", gap: 4 }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
                         {opp.location}
                       </span>
@@ -360,8 +362,8 @@ function OpportunitiesContent() {
                     {isExt && (
                       <div style={{ marginTop: 12, padding: "8px 12px", background: "#e0f2fe", borderRadius: 8, fontSize: 12, color: "#0369a1", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-                          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                          <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                         </svg>
                         Voir sur {opp.sourceName}
                       </div>
