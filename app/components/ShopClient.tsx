@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import { useCart } from "./CartProvider";
+import dynamic from "next/dynamic";
+
+const FollowButton = dynamic(() => import("./FollowButton"), { ssr: false });
+const ReviewsSection = dynamic(() => import("./ReviewsSection"), { ssr: false });
 
 interface Product {
   id?: number | string;
@@ -15,18 +19,19 @@ interface Product {
 interface Partner {
   id: string;
   name: string;
+  city: string;
   slug?: string;
   contact: string;
 }
 
 const ZONES_BY_CITY: Record<string, string[]> = {
   "Saint-Louis": [
-    "Île de Saint-Louis - Sud","Île de Saint-Louis - Nord","Guet Ndar","Santhiaba",
-    "Sor Daga","Sor Diagne","Darou","Diamaguène","Ndioloffène","Ngallèle","Balacos",
-    "Goxu Mbathie","Hydrobase","Cité Vauvert","Cité Niakh","Cité Fayçal","Cité Flamants",
-    "Boudiouck","Leona","Cité Sotrac","Cité Tamsir","Cité Universitaire / UGB","Gandiol","Bango","Khor",
+    "Île de Saint-Louis - Sud", "Île de Saint-Louis - Nord", "Guet Ndar", "Santhiaba",
+    "Sor Daga", "Sor Diagne", "Darou", "Diamaguène", "Ndioloffène", "Ngallèle", "Balacos",
+    "Goxu Mbathie", "Hydrobase", "Cité Vauvert", "Cité Niakh", "Cité Fayçal", "Cité Flamants",
+    "Boudiouck", "Leona", "Cité Sotrac", "Cité Tamsir", "Cité Universitaire / UGB", "Gandiol", "Bango", "Khor",
   ],
-  Dakar: ["Ouest-Foire","Point E","Hann","Grand-Yoff","HLM","Mermoz","Almadies","Yoff"],
+  Dakar: ["Ouest-Foire", "Point E", "Hann", "Grand-Yoff", "HLM", "Mermoz", "Almadies", "Yoff"],
 };
 
 function ProductSkeleton() {
@@ -49,6 +54,7 @@ export default function ShopClient({
   partner?: Partner | null;
 }) {
   const { addItem, items, setIsOpen, setPartnerId } = useCart();
+  const [promo, setPromo] = useState<any>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState("Dakar");
@@ -71,9 +77,9 @@ export default function ShopClient({
           if (data?.partner?.id) setPartnerId(data.partner.id);
           // Normalise les produits partenaire au format Product
           const list: Product[] = rawProducts.map((p: any) => ({
-            id:       p.id,
-            name:     p.name,
-            price:    p.price,
+            id: p.id,
+            name: p.name,
+            price: p.price,
             imageUrl: p.imageUrl || `https://image.pollinations.ai/prompt/${encodeURIComponent(p.name + ", Sénégal, cuisine africaine, photographie professionnelle")}?width=400&height=300&nologo=true`,
             category: { id: p.category, name: p.category || "Plats" },
             isPartnerProduct: true,
@@ -84,6 +90,13 @@ export default function ShopClient({
         })
         .catch(console.error)
         .finally(() => setLoading(false));
+
+      // Fetch active promo for this partner
+      const BASE2 = process.env.NEXT_PUBLIC_URL_PROD;
+      fetch(`${BASE2}/social/promos/${partner.slug}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((p) => { if (p?.id && new Date(p.endsAt) > new Date()) setPromo(p); })
+        .catch(() => { });
     } else {
       // Catalogue général Yitewo
       fetch(`${BASE}/products`)
@@ -116,11 +129,11 @@ export default function ShopClient({
   const handleAdd = (product: Product) => {
     const key = String(product.id || product.name);
     addItem({
-      id:               product.id || product.name,
-      name:             product.name,
-      price:            product.price,
-      imageUrl:         product.imageUrl,
-      category:         product.category?.name,
+      id: product.id || product.name,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      category: product.category?.name,
       isPartnerProduct: product.isPartnerProduct ?? false,
     });
     setAddedMap((prev) => ({ ...prev, [key]: true }));
@@ -153,11 +166,31 @@ export default function ShopClient({
             fontFamily: "Syne", fontWeight: 800,
             fontSize: "clamp(22px, 4vw, 36px)", color: "#fff", marginBottom: 8,
           }}>
-            {partner ? `Commander chez ${partner.name}` : "Nos produits"}
+            {partner ? `${partner.name}` : "Nos produits"}
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>
-            Boutique à {city}
+          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: partner ? 14 : 0 }}>
+            {partner ? `📍 ${partner.city || city}` : `Boutique à ${city}`}
           </p>
+
+          {/* Promo banner */}
+          {promo && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: 99, padding: "6px 16px", marginBottom: 12,
+              fontSize: 13, color: "#fff", fontWeight: 700,
+            }}>
+              🔥 {promo.title}
+              {promo.discount && <span style={{ background: "#E8380D", borderRadius: 99, padding: "1px 8px", fontSize: 11 }}>-{promo.discount}%</span>}
+            </div>
+          )}
+
+          {/* Follow button */}
+          {partner?.slug && (
+            <div>
+              <FollowButton slug={partner.slug} partnerName={partner.name} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -176,7 +209,7 @@ export default function ShopClient({
               style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }}
               width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
             >
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
               value={search}
@@ -262,100 +295,100 @@ export default function ShopClient({
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)
             : filteredProducts.map((product, i) => {
-                const key = String(product.id || product.name);
-                const qty = cartQty(product);
-                const justAdded = addedMap[key];
+              const key = String(product.id || product.name);
+              const qty = cartQty(product);
+              const justAdded = addedMap[key];
 
-                return (
-                  <div
-                    key={key}
-                    className={`product-card fade-up delay-${Math.min((i % 6) + 1, 6)}`}
-                    style={{
-                      background: "#fff",
-                      borderRadius: "var(--radius-card)",
-                      overflow: "hidden",
-                      border: "1px solid var(--border)",
-                      boxShadow: "var(--shadow-card)",
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <div style={{ position: "relative", overflow: "hidden" }}>
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        style={{ width: "100%", height: 180, objectFit: "cover", display: "block", transition: "transform 0.3s" }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300/f0ebe8/aaa?text=Produit"; }}
-                        onMouseEnter={(e) => { (e.target as HTMLImageElement).style.transform = "scale(1.06)"; }}
-                        onMouseLeave={(e) => { (e.target as HTMLImageElement).style.transform = "scale(1)"; }}
-                      />
-                      {product.category?.name && (
-                        <span
-                          className="tag"
-                          style={{
-                            position: "absolute", top: 10, left: 10,
-                            background: "rgba(255,255,255,0.92)",
-                            color: "var(--muted)",
-                            backdropFilter: "blur(4px)",
-                          }}
-                        >
-                          {product.category.name}
-                        </span>
-                      )}
-                      {qty > 0 && (
-                        <span
-                          style={{
-                            position: "absolute", top: 10, right: 10,
-                            background: "var(--green)", color: "#fff",
-                            borderRadius: 99, fontSize: 11, fontWeight: 800,
-                            padding: "3px 9px",
-                          }}
-                        >
-                          {qty} dans le panier
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
-                      <h3 style={{
-                        fontFamily: "Syne", fontWeight: 700, fontSize: 15,
-                        marginBottom: 6, lineHeight: 1.3, flex: 1,
-                      }}>
-                        {product.name}
-                      </h3>
-                      <p style={{ color: "var(--brand)", fontWeight: 700, fontSize: 16, marginBottom: 14 }}>
-                        {product.price.toLocaleString()} <span style={{ fontSize: 12, fontWeight: 500 }}>FCFA</span>
-                      </p>
-
-                      <button
-                        onClick={() => handleAdd(product)}
+              return (
+                <div
+                  key={key}
+                  className={`product-card fade-up delay-${Math.min((i % 6) + 1, 6)}`}
+                  style={{
+                    background: "#fff",
+                    borderRadius: "var(--radius-card)",
+                    overflow: "hidden",
+                    border: "1px solid var(--border)",
+                    boxShadow: "var(--shadow-card)",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ position: "relative", overflow: "hidden" }}>
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      style={{ width: "100%", height: 180, objectFit: "cover", display: "block", transition: "transform 0.3s" }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300/f0ebe8/aaa?text=Produit"; }}
+                      onMouseEnter={(e) => { (e.target as HTMLImageElement).style.transform = "scale(1.06)"; }}
+                      onMouseLeave={(e) => { (e.target as HTMLImageElement).style.transform = "scale(1)"; }}
+                    />
+                    {product.category?.name && (
+                      <span
+                        className="tag"
                         style={{
-                          width: "100%", padding: "10px",
-                          borderRadius: 99, border: "none",
-                          background: justAdded ? "var(--green)" : "var(--brand)",
-                          color: "#fff",
-                          fontFamily: "Syne", fontWeight: 700, fontSize: 14,
-                          cursor: "pointer",
-                          transition: "background 0.3s, transform 0.15s",
-                          transform: justAdded ? "scale(0.98)" : "scale(1)",
-                          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                          position: "absolute", top: 10, left: 10,
+                          background: "rgba(255,255,255,0.92)",
+                          color: "var(--muted)",
+                          backdropFilter: "blur(4px)",
                         }}
                       >
-                        {justAdded ? (
-                          <>✓ Ajouté</>
-                        ) : (
-                          <>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            Ajouter au panier
-                          </>
-                        )}
-                      </button>
-                    </div>
+                        {product.category.name}
+                      </span>
+                    )}
+                    {qty > 0 && (
+                      <span
+                        style={{
+                          position: "absolute", top: 10, right: 10,
+                          background: "var(--green)", color: "#fff",
+                          borderRadius: 99, fontSize: 11, fontWeight: 800,
+                          padding: "3px 9px",
+                        }}
+                      >
+                        {qty} dans le panier
+                      </span>
+                    )}
                   </div>
-                );
-              })}
+
+                  <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+                    <h3 style={{
+                      fontFamily: "Syne", fontWeight: 700, fontSize: 15,
+                      marginBottom: 6, lineHeight: 1.3, flex: 1,
+                    }}>
+                      {product.name}
+                    </h3>
+                    <p style={{ color: "var(--brand)", fontWeight: 700, fontSize: 16, marginBottom: 14 }}>
+                      {product.price.toLocaleString()} <span style={{ fontSize: 12, fontWeight: 500 }}>FCFA</span>
+                    </p>
+
+                    <button
+                      onClick={() => handleAdd(product)}
+                      style={{
+                        width: "100%", padding: "10px",
+                        borderRadius: 99, border: "none",
+                        background: justAdded ? "var(--green)" : "var(--brand)",
+                        color: "#fff",
+                        fontFamily: "Syne", fontWeight: 700, fontSize: 14,
+                        cursor: "pointer",
+                        transition: "background 0.3s, transform 0.15s",
+                        transform: justAdded ? "scale(0.98)" : "scale(1)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      }}
+                    >
+                      {justAdded ? (
+                        <>✓ Ajouté</>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                          Ajouter au panier
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
 
         {/* Empty state */}
@@ -367,6 +400,11 @@ export default function ShopClient({
             </p>
             <p style={{ fontSize: 14 }}>Essayez une autre catégorie ou recherche</p>
           </div>
+        )}
+
+        {/* Reviews section — only on partner pages */}
+        {partner?.slug && (
+          <ReviewsSection slug={partner.slug} partnerName={partner.name || ""} />
         )}
       </div>
     </div>

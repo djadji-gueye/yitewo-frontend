@@ -25,10 +25,12 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
   }, [token]);
 
   const NAV = [
-    { href: `/partner-portal/${token}`, icon: "⊞", label: "Tableau de bord" },
-    { href: `/partner-portal/${token}/produits`, icon: "📦", label: "Mes produits" },
+    { href: `/partner-portal/${token}`,           icon: "⊞",  label: "Tableau de bord" },
+    { href: `/partner-portal/${token}/produits`,  icon: "📦", label: "Mes produits" },
     { href: `/partner-portal/${token}/commandes`, icon: "🛒", label: "Mes commandes" },
-    { href: `/partner-portal/${token}/profil`, icon: "⚙️", label: "Mon profil" },
+    { href: `/partner-portal/${token}/promo`,     icon: "🔥", label: "Promo Flash" },
+    { href: `/partner-portal/${token}/stats`,     icon: "⭐", label: "Réputation" },
+    { href: `/partner-portal/${token}/profil`,    icon: "⚙️", label: "Mon profil" },
   ];
 
   // ── Loading ───────────────────────────────────────────────
