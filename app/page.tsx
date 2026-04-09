@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const OFFERS = [
   { icon: "🛒", label: "Boutiques", desc: "Épiceries, marchands locaux", href: "/order", color: "#e0f2fe", grad: "linear-gradient(135deg,#0c4a6e,#0ea5e9)" },
+  { icon: "🗺️", label: "Carte", desc: "Boutiques près de chez vous", href: "/boutiques", color: "#fce7f3", grad: "linear-gradient(135deg,#831843,#db2777)" },
   { icon: "🍽️", label: "Restaurants", desc: "Repas chauds, snacks, plats locaux", href: "/order", color: "#fef3c7", grad: "linear-gradient(135deg,#78350f,#f59e0b)" },
   { icon: "🔧", label: "Services", desc: "Plombier, ménage, électricien…", href: "/services", color: "#d1fae5", grad: "linear-gradient(135deg,#064e3b,#10b981)" },
   { icon: "💼", label: "Opportunités", desc: "Emploi, commerce, formation", href: "/opportunities", color: "#ede9fe", grad: "linear-gradient(135deg,#4c1d95,#8b5cf6)" },

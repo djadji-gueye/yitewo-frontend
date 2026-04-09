@@ -21,16 +21,36 @@ export default function PartnerPromoPage() {
 
   useEffect(() => {
     if (!token) return;
-    // Get partner slug from token then fetch promo
-    fetch(`${BASE}/partners/portal/${token}`)
-      .then((r) => r.json())
-      .then((partner) => {
+
+    const fetchData = async () => {
+      try {
+        // 1️⃣ récupérer partner
+        const partnerRes = await fetch(`${BASE}/partners/portal/${token}`);
+        if (!partnerRes.ok) throw new Error('Partner fetch failed');
+
+        const partner = await partnerRes.json();
+
+        // 2️⃣ récupérer promo
         if (partner?.slug) {
-          return fetch(`${BASE}/social/promos/${partner.slug}`).then((r) => r.json());
+          const promoRes = await fetch(`${BASE}/social/promos/${partner.slug}`);
+
+          if (!promoRes.ok) return; // évite crash
+
+          const text = await promoRes.text();
+          if (!text) return; // évite "Unexpected end of JSON"
+
+          const promo = JSON.parse(text);
+
+          if (promo?.id) setActivePromo(promo);
         }
-      })
-      .then((promo) => { if (promo?.id) setActivePromo(promo); })
-      .finally(() => setLoading(false));
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [token]);
 
   const handleCreate = async () => {

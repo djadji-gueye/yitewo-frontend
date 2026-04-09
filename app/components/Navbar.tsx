@@ -14,6 +14,7 @@ export default function Navbar() {
   const links = [
     { name: "Accueil", href: "/" },
     { name: "Boutiques", href: "/order" },
+    { name: "🗺️ Carte", href: "/boutiques" },
     { name: "Services", href: "/services" },
     { name: "Opportunités", href: "/opportunities" },
     { name: "Partenaires", href: "/partners" },
