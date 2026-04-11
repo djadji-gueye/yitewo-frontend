@@ -22,6 +22,7 @@ interface Partner {
   city: string;
   slug?: string;
   contact: string;
+  bannerUrl?: string;
 }
 
 const ZONES_BY_CITY: Record<string, string[]> = {
@@ -147,6 +148,16 @@ export default function ShopClient({
 
   return (
     <div style={{ background: "var(--surface)", minHeight: "100vh" }}>
+
+      {/* Bannière personnalisée */}
+      {partner?.bannerUrl && (
+        <div style={{ width: "100%", height: 200, overflow: "hidden" }}>
+          <img src={partner.bannerUrl} alt="bannière"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+          />
+        </div>
+      )}
 
       {/* Page header */}
       <div

@@ -1,4 +1,5 @@
 "use client";
+import AddressPicker from "@/components/AddressPicker";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -76,6 +77,9 @@ export default function PartenairesPage() {
   const [filter, setFilter] = useState<"all" | "active" | "pending">("pending");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId]   = useState<string | null>(null);
+  const [geoEdit, setGeoEdit]         = useState<{address:string;lat?:number;lng?:number;bannerUrl:string}>({address:"",bannerUrl:""});
+  const [savingGeo, setSavingGeo]     = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -127,6 +131,26 @@ export default function PartenairesPage() {
       }
     } catch (e) { console.error("Upload failed", e); }
     finally { setUploadingId(null); }
+  };
+
+  const saveGeo = async (id: string) => {
+    setSavingGeo(true);
+    try {
+      await authFetch(`/partners/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          address:   geoEdit.address || undefined,
+          lat:       geoEdit.lat,
+          lng:       geoEdit.lng,
+          bannerUrl: geoEdit.bannerUrl || undefined,
+        }),
+      });
+      setPartners((prev) => prev.map((p) => p.id === id
+        ? { ...p, address: geoEdit.address, lat: geoEdit.lat, lng: geoEdit.lng, bannerUrl: geoEdit.bannerUrl }
+        : p
+      ));
+      setExpandedId(null);
+    } finally { setSavingGeo(false); }
   };
 
   const generateToken = async (id: string) => {
@@ -213,10 +237,13 @@ export default function PartenairesPage() {
             const portalUrl = hasToken ? `${typeof window !== "undefined" ? window.location.origin : ""}/partner-portal/${tokens[partner.id]}` : null;
 
             return (
-              <div key={partner.id} style={{
+              <div key={partner.id}>
+              <div style={{
                 background: "#13131f",
                 border: `1px solid ${!partner.isActive ? "rgba(245,158,11,0.2)" : "rgba(255,255,255,0.06)"}`,
                 borderRadius: 14, padding: "18px 20px",
+                borderBottomLeftRadius: expandedId === partner.id ? 0 : 14,
+                borderBottomRightRadius: expandedId === partner.id ? 0 : 14,
               }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
 
@@ -297,6 +324,18 @@ export default function PartenairesPage() {
                       {acting === partner.id ? "…" : partner.isActive ? "Désactiver" : "✅ Activer"}
                     </button>
 
+                    {/* Géolocalisation & bannière */}
+                    <button
+                      onClick={() => {
+                        if (expandedId === partner.id) { setExpandedId(null); return; }
+                        setExpandedId(partner.id);
+                        setGeoEdit({ address: partner.address || "", lat: partner.lat, lng: partner.lng, bannerUrl: partner.bannerUrl || "" });
+                      }}
+                      style={{ padding: "7px 14px", borderRadius: 8, fontSize: 11, border: "1px solid rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.08)", color: "#10b981", cursor: "pointer", fontWeight: 600 }}
+                    >
+                      📍 Géoloc & bannière
+                    </button>
+
                     {/* Portail uniquement pour Marchand et Restaurant */}
                     {partner.isActive && partner.type !== "Prestataire" && (
                       <button
@@ -314,6 +353,42 @@ export default function PartenairesPage() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Formulaire géoloc + bannière */}
+              {expandedId === partner.id && (
+                <div style={{ border: "1px solid #f0ebe8", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "16px 20px", background: "#fafaf8", marginBottom: 0 }}>
+                  <p style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 13, color: "#1a1a1a", marginBottom: 12 }}>
+                    📍 Géolocalisation & Bannière
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 600, color: "#6b6b6b", display: "block", marginBottom: 4 }}>Adresse précise (OpenStreetMap)</label>
+                      <AddressPicker
+                        value={geoEdit.address}
+                        onChange={(addr, lat, lng) => setGeoEdit((g) => ({ ...g, address: addr, lat, lng }))}
+                      />
+                      {geoEdit.lat && <p style={{ fontSize: 11, color: "#10b981", marginTop: 4 }}>📍 {geoEdit.lat.toFixed(5)}, {geoEdit.lng?.toFixed(5)}</p>}
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 600, color: "#6b6b6b", display: "block", marginBottom: 4 }}>Bannière (URL — 1200×300px)</label>
+                      <input value={geoEdit.bannerUrl} onChange={(e) => setGeoEdit((g) => ({ ...g, bannerUrl: e.target.value }))}
+                        placeholder="https://…"
+                        style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #f0ebe8", fontSize: 13, outline: "none" }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={() => saveGeo(partner.id)} disabled={savingGeo}
+                        style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: "#10b981", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        {savingGeo ? "…" : "💾 Enregistrer"}
+                      </button>
+                      <button onClick={() => setExpandedId(null)}
+                        style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", fontSize: 12, cursor: "pointer", color: "#6b6b6b" }}>
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               </div>
             );
           })}

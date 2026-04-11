@@ -16,6 +16,7 @@ interface Partner {
   followers: number;
   avgRating?: number | null;
   reviewCount: number;
+  bannerUrl?: string | null;
   promo?: { title: string; discount?: number } | null;
   lat: number;
   lng: number;
@@ -150,7 +151,9 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
   const [typeFilter, setType]   = useState<"all" | "Marchand" | "Restaurant">("all");
   const [search, setSearch]     = useState("");
   const [selected, setSelected] = useState<Partner | null>(null);
-  const [listView, setListView] = useState(false);
+  const [listView, setListView] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
 
   const cities = useMemo(() => [...new Set(partners.map((p) => p.city))].sort(), [partners]);
 
@@ -218,7 +221,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
             padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)",
             background: "rgba(255,255,255,0.12)", color: "#fff", fontSize: 11, cursor: "pointer",
           }}>
-            {listView ? "🗺️ Carte" : "📋 Liste"}
+            {listView ? "🗺️ Voir la carte" : "📋 Liste des boutiques"}
           </button>
         </div>
       </div>
@@ -257,17 +260,36 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
           </div>
         )}
 
-        {/* Side panel — selected partner */}
+        {/* Side panel — desktop sidebar / mobile bottom sheet */}
         {selected && !listView && (
           <div style={{
-            width: 320, flexShrink: 0, background: "#fff",
+            width: "clamp(280px, 30vw, 340px)", flexShrink: 0, background: "#fff",
             borderLeft: "1px solid var(--border)", overflowY: "auto",
             animation: "slideIn 0.2s ease",
-          }}>
+            // Mobile: bottom sheet
+          }} className="partner-panel">
+          <style>{`
+            @media (max-width: 768px) {
+              .partner-panel {
+                position: fixed !important;
+                bottom: 0; left: 0; right: 0;
+                width: 100% !important;
+                max-height: 65vh;
+                border-left: none !important;
+                border-top: 1px solid var(--border);
+                border-radius: 16px 16px 0 0;
+                box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+                z-index: 500;
+              }
+            }
+          `}</style>
             <style>{`@keyframes slideIn { from { transform: translateX(100%) } to { transform: translateX(0) } }`}</style>
 
-            {/* Cover */}
-            <div style={{ height: 120, background: `linear-gradient(135deg, #1a0500, #E8380D)`, position: "relative" }}>
+            {/* Cover — bannière perso ou gradient */}
+            <div style={{ height: 120, background: selected.bannerUrl ? "none" : "linear-gradient(135deg, #1a0500, #E8380D)", position: "relative", overflow: "hidden" }}>
+              {selected.bannerUrl && (
+                <img src={selected.bannerUrl} alt="bannière" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).parentElement!.style.background="linear-gradient(135deg,#1a0500,#E8380D)"; }} />
+              )}
               <button onClick={() => setSelected(null)} style={{
                 position: "absolute", top: 10, right: 10,
                 background: "rgba(0,0,0,0.4)", border: "none", borderRadius: "50%",
@@ -381,6 +403,23 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
           </div>
         )}
       </div>
+    {/* Mobile floating map button */}
+    {listView && (
+      <div style={{ display: "none" }} className="mobile-map-btn">
+        <style>{`.mobile-map-btn { display: block !important; position: fixed; bottom: 80px; right: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-map-btn { display: none !important; } }`}</style>
+        <button onClick={() => setListView(false)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#E8380D", color: "#fff", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(232,56,13,0.4)", cursor: "pointer" }}>
+          🗺️ Voir la carte
+        </button>
+      </div>
+    )}
+    {!listView && !selected && (
+      <div style={{ display: "none" }} className="mobile-list-btn">
+        <style>{`.mobile-list-btn { display: block !important; position: fixed; bottom: 80px; left: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-list-btn { display: none !important; } }`}</style>
+        <button onClick={() => setListView(true)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#fff", color: "#1a1a1a", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", cursor: "pointer" }}>
+          📋 {filtered.length} boutiques
+        </button>
+      </div>
+    )}
     </div>
   );
 }

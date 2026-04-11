@@ -71,16 +71,24 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
     debounceRef.current = setTimeout(() => searchGeo(val), 400);
   };
 
+  const [geoLat, setGeoLat] = useState<number | undefined>(undefined);
+  const [geoLng, setGeoLng] = useState<number | undefined>(undefined);
+  const [geoAddress, setGeoAddress] = useState<string>("");
+
   const selectGeo = (s: GeoSuggestion) => {
     const addr = s.address;
     const detectedCity = addr.city || addr.town || addr.municipality || addr.county || "";
     const detectedZone = addr.suburb || addr.neighbourhood || addr.quarter || addr.village || addr.hamlet || addr.road || "";
     const shortName = detectedZone || detectedCity;
+    const parts = [addr.road || addr.pedestrian, detectedZone, detectedCity].filter(Boolean);
     setGeoQuery(shortName || s.display_name.split(",")[0]);
     setCity(detectedCity);
     setZone(detectedZone);
     setGeoSelected(true);
     setGeoSuggestions([]);
+    setGeoLat(parseFloat(s.lat));
+    setGeoLng(parseFloat(s.lon));
+    setGeoAddress(parts.join(", "));
   };
 
   const shortLabel = (s: GeoSuggestion) => {
@@ -119,6 +127,9 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
         contact, message: message || undefined,
         categories: selectedCats.length ? selectedCats : undefined,
         profileImageUrl: logoUrl || undefined,
+        address: geoAddress || undefined,
+        lat: geoLat,
+        lng: geoLng,
       });
       setStatus("success");
     } catch (err: any) {

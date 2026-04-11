@@ -1,132 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import AddressPicker from "@/components/AddressPicker";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
-
-// ── Mini AddressPicker (Nominatim) ─────────────────────────
-interface GeoSuggestion {
-  display_name: string;
-  lat: string;
-  lon: string;
-  address: any;
-}
-
-function AddressPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (address: string) => void;
-}) {
-  const [query, setQuery] = useState(value);
-  const [suggestions, setSuggestions] = useState<GeoSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(!!value);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const search = useCallback(async (q: string) => {
-    if (q.length < 3) { setSuggestions([]); return; }
-    setLoading(true);
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + " Sénégal")}&format=json&addressdetails=1&limit=5&accept-language=fr&countrycodes=sn`;
-      const res = await fetch(url, { headers: { "Accept-Language": "fr" } });
-      setSuggestions(await res.json());
-    } catch { setSuggestions([]); }
-    finally { setLoading(false); }
-  }, []);
-
-  const handleInput = (val: string) => {
-    setQuery(val);
-    setSelected(false);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(val), 380);
-  };
-
-  const select = (s: GeoSuggestion) => {
-    const addr = s.address;
-    const parts = [
-      addr.road || addr.pedestrian,
-      addr.suburb || addr.neighbourhood || addr.quarter || addr.village,
-      addr.city || addr.town || addr.municipality || addr.county,
-    ].filter(Boolean);
-    const label = parts.join(", ");
-    setQuery(label);
-    setSuggestions([]);
-    setSelected(true);
-    onChange(label);
-  };
-
-  return (
-    <div style={{ position: "relative" }}>
-      <div style={{ position: "relative" }}>
-        <input
-          value={query}
-          onChange={(e) => handleInput(e.target.value)}
-          placeholder="Rechercher une adresse, rue, quartier…"
-          style={{
-            width: "100%", padding: "10px 38px 10px 14px", borderRadius: 10,
-            border: `1.5px solid ${selected ? "#10b981" : "#f0ebe8"}`,
-            background: selected ? "#f0fdf6" : "#fff",
-            fontSize: 14, outline: "none",
-            fontFamily: "DM Sans, sans-serif", color: "#1a1a1a",
-            transition: "border-color 0.2s",
-            boxSizing: "border-box",
-          }}
-        />
-        {loading && (
-          <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#aaa" }}>⏳</span>
-        )}
-        {selected && !loading && (
-          <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#10b981" }}>✓</span>
-        )}
-        {query && !selected && !loading && (
-          <button
-            onClick={() => { setQuery(""); setSuggestions([]); setSelected(false); onChange(""); }}
-            style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#aaa" }}
-          >✕</button>
-        )}
-      </div>
-
-      {suggestions.length > 0 && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "#fff", border: "1px solid #f0ebe8",
-          borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          zIndex: 200, overflow: "hidden",
-        }}>
-          {suggestions.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => select(s)}
-              style={{
-                display: "block", width: "100%", textAlign: "left",
-                padding: "11px 16px", background: "none", border: "none",
-                borderBottom: i < suggestions.length - 1 ? "1px solid #f7f4f2" : "none",
-                cursor: "pointer", fontSize: 13, color: "#1a1a1a",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#fafaf8")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-            >
-              <span style={{ fontWeight: 600 }}>📍 {s.display_name.split(",").slice(0, 2).join(",")}</span>
-              <span style={{ display: "block", fontSize: 11, color: "#aaa", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {s.display_name}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {query.length >= 3 && !loading && suggestions.length === 0 && !selected && (
-        <p style={{ fontSize: 12, color: "#aaa", marginTop: 6 }}>
-          Aucun résultat — essayez un autre nom de quartier ou de rue.
-        </p>
-      )}
-    </div>
-  );
-}
 
 // ── Page profil ────────────────────────────────────────────
 export default function PartnerProfilPage() {
@@ -143,6 +21,9 @@ export default function PartnerProfilPage() {
   const [city, setCity] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [address, setAddress] = useState("");
+  const [lat, setLat] = useState<number | undefined>(undefined);
+  const [lng, setLng] = useState<number | undefined>(undefined);
+  const [bannerUrl, setBannerUrl] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -154,6 +35,9 @@ export default function PartnerProfilPage() {
         setCity(data.city || "");
         setPhotoUrl(data.profileImageUrl || "");
         setAddress(data.address || "");
+        setLat(data.lat || undefined);
+        setLng(data.lng || undefined);
+        setBannerUrl(data.bannerUrl || "");
       })
       .finally(() => setLoading(false));
   }, [token]);
@@ -169,6 +53,9 @@ export default function PartnerProfilPage() {
           city: city || undefined,
           profileImageUrl: photoUrl || undefined,
           address: address || undefined,
+          lat: lat || undefined,
+          lng: lng || undefined,
+          bannerUrl: bannerUrl || undefined,
         }),
       });
       if (!res.ok) throw new Error("Erreur lors de la sauvegarde");
@@ -279,13 +166,33 @@ export default function PartnerProfilPage() {
             Adresse précise
             <span style={{ fontSize: 10, fontWeight: 400, color: "#aaa", marginLeft: 6 }}>via OpenStreetMap</span>
           </label>
-          <AddressPicker value={address} onChange={setAddress} />
+          <AddressPicker value={address} onChange={(addr, la, lo) => { setAddress(addr); if (la) setLat(la); if (lo) setLng(lo); }} />
           {address && (
             <p style={{ fontSize: 11, color: "#10b981", marginTop: 6, fontWeight: 500 }}>
               📍 {address}
             </p>
           )}
         </div>
+      </section>
+
+
+      {/* Bannière */}
+      <section style={card}>
+        <h2 style={sTitle}>Bannière de la boutique</h2>
+        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.5 }}>
+          Taille recommandée : <strong>1200 × 300 px</strong> (ratio 4:1). Visible en haut de votre page boutique.
+        </p>
+        {bannerUrl && !bannerUrl.startsWith("blob") && (
+          <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden", height: 100, background: "#f7f4f2", position: "relative" }}>
+            <img src={bannerUrl} alt="bannière" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          </div>
+        )}
+        <label style={lbl}>URL de la bannière</label>
+        <input value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)}
+          placeholder="https://… (1200×300px recommandé)"
+          style={inp} />
+        <p style={{ fontSize: 11, color: "#aaa", marginTop: 5 }}>💡 Uploadez sur Imgur puis collez le lien Direct Link</p>
       </section>
 
       {/* Lien boutique */}

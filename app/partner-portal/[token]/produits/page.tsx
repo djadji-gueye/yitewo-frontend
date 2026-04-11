@@ -15,13 +15,35 @@ const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: stri
     { id: "special", label: "Spéciaux", icon: "⭐" },
   ],
   Marchand: [
-    { id: "viande", label: "Viandes & Poissons", icon: "🥩" },
-    { id: "legumes", label: "Légumes & Fruits", icon: "🥦" },
-    { id: "epicerie", label: "Épicerie sèche", icon: "🌾" },
-    { id: "boisson", label: "Boissons", icon: "🥤" },
-    { id: "laitier", label: "Produits laitiers", icon: "🥛" },
-    { id: "hygiene", label: "Hygiène & Entretien", icon: "🧼" },
-    { id: "divers", label: "Maison & Divers", icon: "🏠" },
+    // Alimentation
+    { id: "viande",       label: "Viandes & Poissons",       icon: "🥩" },
+    { id: "legumes",      label: "Légumes & Fruits",          icon: "🥦" },
+    { id: "epicerie",     label: "Épicerie sèche",            icon: "🌾" },
+    { id: "boisson",      label: "Boissons",                  icon: "🥤" },
+    { id: "laitier",      label: "Produits laitiers",         icon: "🥛" },
+    { id: "boulangerie",  label: "Boulangerie & Pâtisserie",  icon: "🥖" },
+    { id: "alimentation", label: "Alimentation générale",     icon: "🛒" },
+    // Mode & Beauté
+    { id: "cosmetique",   label: "Cosmétique & Beauté",       icon: "💄" },
+    { id: "mode",         label: "Mode & Vêtements",          icon: "👗" },
+    { id: "bijoux",       label: "Bijouterie & Accessoires",  icon: "💍" },
+    // Tech & Telecom
+    { id: "telecom",      label: "Téléphonie & Telecom",      icon: "📱" },
+    { id: "informatique", label: "Informatique & High-Tech",  icon: "💻" },
+    { id: "electromenager", label: "Électroménager",          icon: "🔌" },
+    // Santé & Pharmacie
+    { id: "pharmacie",    label: "Pharmacie & Parapharmacie", icon: "💊" },
+    // Maison & Construction
+    { id: "quincaillerie", label: "Quincaillerie & BTP",      icon: "🔨" },
+    { id: "materiaux",    label: "Matériaux de construction", icon: "🧱" },
+    // Papeterie & Art
+    { id: "librairie",    label: "Librairie & Papeterie",     icon: "📚" },
+    { id: "artisanat",    label: "Artisanat & Art",           icon: "🎨" },
+    // Commerce en gros
+    { id: "grossiste",    label: "Grossiste",                 icon: "📦" },
+    // Autres
+    { id: "hygiene",      label: "Hygiène & Entretien",       icon: "🧼" },
+    { id: "divers",       label: "Maison & Divers",           icon: "🏠" },
   ],
 };
 
