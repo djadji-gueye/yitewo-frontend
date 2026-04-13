@@ -23,16 +23,16 @@ interface Partner {
 }
 
 const CITY_COORDS: Record<string, [number, number]> = {
-  "Dakar":       [14.6937, -17.4441],
+  "Dakar": [14.6937, -17.4441],
   "Saint-Louis": [16.0326, -16.4818],
-  "Thiès":       [14.7910, -16.9359],
-  "Ziguinchor":  [12.5586, -16.2719],
+  "Thiès": [14.7910, -16.9359],
+  "Ziguinchor": [12.5586, -16.2719],
 };
 
 function StarRating({ rating }: { rating: number }) {
   return (
     <span>
-      {[1,2,3,4,5].map((i) => (
+      {[1, 2, 3, 4, 5].map((i) => (
         <span key={i} style={{ fontSize: 11, color: i <= Math.round(rating) ? "#f59e0b" : "#e5e7eb" }}>★</span>
       ))}
     </span>
@@ -53,7 +53,7 @@ function PartnerMap({ partners, selected, onSelect, city }: {
   onSelect: (p: Partner | null) => void;
   city: string;
 }) {
-  const mapRef  = useRef<any>(null);
+  const mapRef = useRef<any>(null);
   const mapElRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<any[]>([]);
 
@@ -147,10 +147,11 @@ function PartnerMap({ partners, selected, onSelect, city }: {
 
 // ── Main component ─────────────────────────────────────────
 export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
-  const [city, setCity]         = useState("Dakar");
-  const [typeFilter, setType]   = useState<"all" | "Marchand" | "Restaurant">("all");
-  const [search, setSearch]     = useState("");
+  const [city, setCity] = useState("Dakar");
+  const [typeFilter, setType] = useState<"all" | "Marchand" | "Restaurant">("all");
+  const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Partner | null>(null);
+  const [sidebarOpen, setSidebar] = useState(true);
   const [listView, setListView] = useState(
     typeof window !== "undefined" && window.innerWidth < 768
   );
@@ -189,7 +190,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
           <div style={{ position: "relative", flex: "1 1 200px", maxWidth: 260 }}>
             <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.5)" }}
               width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher…"
@@ -268,7 +269,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
             animation: "slideIn 0.2s ease",
             // Mobile: bottom sheet
           }} className="partner-panel">
-          <style>{`
+            <style>{`
             @media (max-width: 768px) {
               .partner-panel {
                 position: fixed !important;
@@ -288,7 +289,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
             {/* Cover — bannière perso ou gradient */}
             <div style={{ height: 120, background: selected.bannerUrl ? "none" : "linear-gradient(135deg, #1a0500, #E8380D)", position: "relative", overflow: "hidden" }}>
               {selected.bannerUrl && (
-                <img src={selected.bannerUrl} alt="bannière" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).parentElement!.style.background="linear-gradient(135deg,#1a0500,#E8380D)"; }} />
+                <img src={selected.bannerUrl} alt="bannière" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.style.background = "linear-gradient(135deg,#1a0500,#E8380D)"; }} />
               )}
               <button onClick={() => setSelected(null)} style={{
                 position: "absolute", top: 10, right: 10,
@@ -362,64 +363,85 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
           </div>
         )}
 
-        {/* Partners list sidebar (desktop, when no selection) */}
+        {/* Partners list sidebar — toggleable */}
         {!listView && !selected && filtered.length > 0 && (
-          <div style={{
-            width: 280, flexShrink: 0, background: "#fff",
-            borderLeft: "1px solid var(--border)", overflowY: "auto",
-          }}>
-            <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
-              <p style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, color: "var(--text)" }}>
-                {filtered.length} boutique{filtered.length > 1 ? "s" : ""} à {city}
-              </p>
-            </div>
-            <div style={{ padding: "8px" }}>
-              {filtered.map((p) => (
-                <button key={p.id} onClick={() => setSelected(p)} style={{
-                  width: "100%", textAlign: "left", padding: "10px 12px",
-                  borderRadius: 10, border: "none", cursor: "pointer",
-                  background: "transparent", marginBottom: 4,
-                  transition: "background 0.15s",
-                }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "var(--surface)" }}>
-                      <img src={getAvatarUrl(p.name, p.type, p.profileImageUrl)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
-                      <p style={{ fontSize: 11, color: "var(--muted)" }}>
-                        {p.zone || p.city}
-                        {p.avgRating ? ` · ⭐ ${p.avgRating}` : ""}
-                        {p.promo ? " · 🔥" : ""}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          <>
+            {/* Bouton toggle flottant sur la carte */}
+            <button
+              onClick={() => setSidebar(!sidebarOpen)}
+              title={sidebarOpen ? "Masquer la liste" : "Afficher la liste"}
+              style={{
+                position: "absolute", right: sidebarOpen ? 292 : 12, top: 12, zIndex: 1001,
+                width: 34, height: 34, borderRadius: 8, border: "1px solid var(--border)",
+                background: "#fff", cursor: "pointer", fontSize: 13,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.12)", transition: "right 0.3s ease",
+              }}
+            >
+              {sidebarOpen ? "▶" : "◀"}
+            </button>
+
+            {sidebarOpen && (
+              <div style={{
+                width: 280, flexShrink: 0, background: "#fff",
+                borderLeft: "1px solid var(--border)", overflowY: "auto",
+                animation: "slideInRight 0.25s ease",
+              }}>
+                <style>{"@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}"}</style>
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <p style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, color: "var(--text)" }}>
+                    {filtered.length} boutique{filtered.length > 1 ? "s" : ""} à {city}
+                  </p>
+                  <button onClick={() => setSidebar(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 16, padding: 2 }}>✕</button>
+                </div>
+                <div style={{ padding: "8px" }}>
+                  {filtered.map((p) => (
+                    <button key={p.id} onClick={() => setSelected(p)} style={{
+                      width: "100%", textAlign: "left", padding: "10px 12px",
+                      borderRadius: 10, border: "none", cursor: "pointer",
+                      background: "transparent", marginBottom: 4, transition: "background 0.15s",
+                    }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "var(--surface)" }}>
+                          <img src={getAvatarUrl(p.name, p.type, p.profileImageUrl)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
+                          <p style={{ fontSize: 11, color: "var(--muted)" }}>
+                            {p.zone || p.city}
+                            {p.avgRating ? ` · ⭐ ${p.avgRating}` : ""}
+                            {p.promo ? " · 🔥" : ""}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
-    {/* Mobile floating map button */}
-    {listView && (
-      <div style={{ display: "none" }} className="mobile-map-btn">
-        <style>{`.mobile-map-btn { display: block !important; position: fixed; bottom: 80px; right: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-map-btn { display: none !important; } }`}</style>
-        <button onClick={() => setListView(false)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#E8380D", color: "#fff", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(232,56,13,0.4)", cursor: "pointer" }}>
-          🗺️ Voir la carte
-        </button>
-      </div>
-    )}
-    {!listView && !selected && (
-      <div style={{ display: "none" }} className="mobile-list-btn">
-        <style>{`.mobile-list-btn { display: block !important; position: fixed; bottom: 80px; left: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-list-btn { display: none !important; } }`}</style>
-        <button onClick={() => setListView(true)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#fff", color: "#1a1a1a", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", cursor: "pointer" }}>
-          📋 {filtered.length} boutiques
-        </button>
-      </div>
-    )}
+      {/* Mobile floating map button */}
+      {listView && (
+        <div style={{ display: "none" }} className="mobile-map-btn">
+          <style>{`.mobile-map-btn { display: block !important; position: fixed; bottom: 80px; right: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-map-btn { display: none !important; } }`}</style>
+          <button onClick={() => setListView(false)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#E8380D", color: "#fff", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(232,56,13,0.4)", cursor: "pointer" }}>
+            🗺️ Voir la carte
+          </button>
+        </div>
+      )}
+      {!listView && !selected && (
+        <div style={{ display: "none" }} className="mobile-list-btn">
+          <style>{`.mobile-list-btn { display: block !important; position: fixed; bottom: 80px; left: 16px; z-index: 100; } @media (min-width: 769px) { .mobile-list-btn { display: none !important; } }`}</style>
+          <button onClick={() => setListView(true)} style={{ padding: "10px 18px", borderRadius: 99, border: "none", background: "#fff", color: "#1a1a1a", fontWeight: 700, fontSize: 13, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", cursor: "pointer" }}>
+            📋 {filtered.length} boutiques
+          </button>
+        </div>
+      )}
     </div>
   );
 }
