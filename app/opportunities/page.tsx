@@ -109,8 +109,33 @@ function OpportunitiesContent() {
       }}>
         <div style={{ position: "absolute", top: -60, right: -60, width: 280, height: 280, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
         <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 99, padding: "5px 14px", marginBottom: 18 }}>
-            <span style={{ color: "#c8d8ff", fontSize: 13, fontWeight: 500 }}>✨ Offres & Annonces</span>
+          {/* Titre + boutons actions en flex responsive */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 99, padding: "5px 14px" }}>
+              <span style={{ color: "#c8d8ff", fontSize: 13, fontWeight: 500 }}>✨ Offres & Annonces</span>
+            </div>
+            {/* Boutons déplacés ici — visibles sur mobile */}
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <Link href="/opportunities/mes-annonces" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff", padding: "9px 14px", borderRadius: 99,
+                textDecoration: "none", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap",
+              }}>
+                📋 <span style={{ display: "var(--btn-label, inline)" }}>Mes annonces</span>
+              </Link>
+              <Link href="/opportunities/poster" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "var(--brand)", color: "#fff", padding: "9px 14px", borderRadius: 99,
+                textDecoration: "none", fontWeight: 700, fontSize: 13, whiteSpace: "nowrap",
+                boxShadow: "0 4px 16px rgba(232,56,13,0.4)",
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Publier
+              </Link>
+            </div>
           </div>
           <h1 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: "clamp(26px, 4vw, 42px)", color: "#fff", marginBottom: 10, lineHeight: 1.2 }}>
             Opportunités
@@ -142,43 +167,30 @@ function OpportunitiesContent() {
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div style={{ position: "absolute", top: 44, right: 20, display: "flex", gap: 8 }}>
-          <Link href="/opportunities/mes-annonces" style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
-            color: "#fff", padding: "9px 16px", borderRadius: 99,
-            textDecoration: "none", fontWeight: 600, fontSize: 12,
-          }}>
-            📋 Mes annonces
-          </Link>
-          <Link href="/opportunities/poster" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "var(--brand)", color: "#fff", padding: "9px 18px", borderRadius: 99,
-            textDecoration: "none", fontWeight: 700, fontSize: 13,
-            boxShadow: "0 4px 16px rgba(232,56,13,0.4)",
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Publier
-          </Link>
-        </div>
+
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px 64px" }}>
 
         {/* ── Filters bar ── */}
-        <div style={{
+        <style>{`
+          @media (max-width: 640px) {
+            .filters-bar { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+            .filters-sep { display: none !important; }
+            .pills-scroll { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+            .pills-scroll::-webkit-scrollbar { display: none; }
+          }
+        `}</style>
+        <div className="filters-bar" style={{
           background: "#fff", borderRadius: 14, border: "1px solid var(--border)",
           padding: "16px 20px", marginBottom: 24,
           display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center",
         }}>
 
           {/* Category */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Catégorie</span>
-            <div className="pills-scroll" style={{ display: "flex", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, width: "100%", maxWidth: "100%" }}>
+            <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600, flexShrink: 0 }}>Catégorie</span>
+            <div className="pills-scroll" style={{ display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" as const }}>
               <button onClick={() => applyFilter("category", "")} style={filterPill(!category)}>Toutes</button>
               {Object.entries(CATEGORY_META).map(([k, m]) => (
                 <button key={k} onClick={() => applyFilter("category", k)} style={{
@@ -193,7 +205,7 @@ function OpportunitiesContent() {
             </div>
           </div>
 
-          <div style={{ width: 1, height: 24, background: "var(--border)", flexShrink: 0 }} />
+          <div className="filters-sep" style={{ width: 1, height: 24, background: "var(--border)", flexShrink: 0 }} />
 
           {/* City */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -205,7 +217,7 @@ function OpportunitiesContent() {
             </select>
           </div>
 
-          <div style={{ width: 1, height: 24, background: "var(--border)", flexShrink: 0 }} />
+          <div className="filters-sep" style={{ width: 1, height: 24, background: "var(--border)", flexShrink: 0 }} />
 
           {/* Source */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
