@@ -55,7 +55,7 @@ export default function HomePage() {
               },
               contactPoint: {
                 "@type": "ContactPoint",
-                telephone: "+221-77-725-93-30",
+                telephone: "+221-77-069-80-80",
                 contactType: "customer service",
                 areaServed: "SN",
                 availableLanguage: ["French", "Wolof"],
