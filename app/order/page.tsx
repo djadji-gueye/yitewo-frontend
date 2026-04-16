@@ -1,11 +1,41 @@
 import { Suspense } from "react";
 import PartnersShop from "@/components/PartnersShop";
 import ShopClient from "@/components/ShopClient";
+import { Metadata } from "next";
 
 // Cache 60 secondes — la liste des boutiques ne change pas à chaque seconde
 export const revalidate = 60;
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
+
+export async function generateMetadata({ searchParams }: { searchParams: { partner?: string } }): Promise<Metadata> {
+  const slug = searchParams?.partner;
+  if (!slug) return { title: "Commander" };
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_URL_PROD}/partners/by-slug/${slug}`);
+    if (!res.ok) return { title: "Boutique Yitewo" };
+    const partner = await res.json();
+
+    return {
+      title: `${partner.name} — Commander en ligne`,
+      description: `Commandez directement auprès de ${partner.name} à ${partner.zone || partner.city}, Sénégal. Livraison rapide via Yitewo.`,
+      openGraph: {
+        title: `${partner.name} sur Yitewo`,
+        description: `Découvrez ${partner.name} à ${partner.zone || partner.city} et commandez en ligne.`,
+        images: partner.profileImageUrl ? [{ url: partner.profileImageUrl }] : [],
+        type: "website",
+        locale: "fr_SN",
+        siteName: "Yitewo",
+      },
+      alternates: {
+        canonical: `https://yitewo.com/order?partner=${slug}`,
+      },
+    };
+  } catch {
+    return { title: "Boutique Yitewo" };
+  }
+}
 
 async function getPartners() {
   try {

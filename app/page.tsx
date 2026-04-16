@@ -25,6 +25,56 @@ export default function HomePage() {
   return (
     <div style={{ background: "var(--surface)", minHeight: "100vh", fontFamily: "DM Sans, sans-serif" }}>
 
+      {/* ✅ JSON-LD SEO */}
+      <script
+        id="yitewo-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Yitewo",
+            url: "https://yitewo.com",
+            description: "La marketplace de proximité sénégalaise",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: {
+                "@type": "EntryPoint",
+                urlTemplate:
+                  "https://yitewo.com/boutiques?q={search_term_string}",
+              },
+              "query-input": "required name=search_term_string",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Yitewo",
+              url: "https://yitewo.com",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://yitewo.com/logo.png",
+              },
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+221-77-725-93-30",
+                contactType: "customer service",
+                areaServed: "SN",
+                availableLanguage: ["French", "Wolof"],
+              },
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: "SN",
+                addressLocality: "Dakar",
+              },
+              sameAs: [
+                "https://www.facebook.com/yitewo",
+                "https://www.tiktok.com/@yitewo_com",
+                "https://www.instagram.com/yitewo_com",
+              ],
+            },
+          }),
+        }}
+      />
+
       {/* ── HERO ── */}
       <section style={{
         background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, #16213e 70%, #0f3460 100%)",
