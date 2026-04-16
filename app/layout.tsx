@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     "immobilier Sénégal",
   ],
 
-  authors: [{ name: "Papa Djadji Gueye", url: "https://yitewo.com" }],
-  creator: "Papa Djadji Gueye",
+  authors: [{ name: "Yitewo", url: "https://yitewo.com" }],
+  creator: "Yitewo",
   publisher: "Yitewo",
 
   // Open Graph (Facebook, WhatsApp preview)

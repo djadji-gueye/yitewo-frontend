@@ -1,7 +1,7 @@
 
 import { MetadataRoute } from "next";
 
-const BASE = "https://yitewo.com";
+const BASE = "https://yitewo-backend.onrender.com";
 const API = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
