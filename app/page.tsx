@@ -51,7 +51,7 @@ export default function HomePage() {
               url: "https://yitewo.com",
               logo: {
                 "@type": "ImageObject",
-                url: "https://yitewo.com/logo.png",
+                url: "https://yitewo.com/logo.jpg",
               },
               contactPoint: {
                 "@type": "ContactPoint",
