@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages dynamiques — partenaires
   let partnerPages: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${API}/partners/shop`, {
+    const res = await fetch(`${API}/partners/public/shop`, {
       next: { revalidate: 3600 },
     });
 
