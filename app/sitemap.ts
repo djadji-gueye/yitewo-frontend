@@ -1,7 +1,7 @@
 
 import { MetadataRoute } from "next";
 
-const BASE = "https://yitewo-backend.onrender.com";
+const BASE = "https://yitewo.com";
 const API = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages dynamiques — partenaires
   let partnerPages: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${API}/partners/public/active`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API}/partners/shop`, { next: { revalidate: 3600 } });
     if (res.ok) {
       const partners: { slug: string; updatedAt?: string }[] = await res.json();
       partnerPages = partners.map((p) => ({
