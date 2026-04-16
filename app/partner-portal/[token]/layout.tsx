@@ -119,7 +119,7 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
           <div style={{ padding: "16px 20px", borderTop: "1px solid #f0ebe8" }}>
             <p style={{ fontSize: 11, color: "#aaa", marginBottom: 8, fontWeight: 500 }}>VOTRE LIEN DE COMMANDE</p>
             <div style={{ background: "#f7f4f2", borderRadius: 8, padding: "8px 10px", fontSize: 11, color: "#6b6b6b", wordBreak: "break-all", lineHeight: 1.5 }}>
-              {typeof window !== "undefined" ? window.location.origin : "https://yitewo-frontend.vercel.app"}/order?partner={partner.slug}
+              {typeof window !== "undefined" ? window.location.origin : "https://yitewo.com"}/order?partner={partner.slug}
             </div>
             <button onClick={() => navigator.clipboard?.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/order?partner=${partner.slug}`)}
               style={{ width: "100%", marginTop: 8, padding: "7px", borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", color: "#E8380D", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>

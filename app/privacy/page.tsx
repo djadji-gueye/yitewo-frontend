@@ -133,7 +133,7 @@ export default function PrivacyPage() {
             <p>Pour toute question relative à la protection de vos données ou pour exercer vos droits :</p>
             <ul style={{ paddingLeft: 20, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
               <li>WhatsApp : <strong>+221 77 XXX XX XX</strong></li>
-              <li>Site : <Link href="/" style={{ color: "var(--brand)" }}>yitewo-frontend.vercel.app</Link></li>
+              <li>Site : <Link href="/" style={{ color: "var(--brand)" }}>yitewo.com</Link></li>
             </ul>
             <p style={{ marginTop: 10 }}>En cas de réclamation non résolue, vous pouvez contacter la <strong>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal, autorité de contrôle compétente en matière de protection des données personnelles.</p>
           </Section>
