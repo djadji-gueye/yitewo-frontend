@@ -21,17 +21,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages dynamiques — partenaires
   let partnerPages: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch(`${API}/partners/shop`, { next: { revalidate: 3600 } });
-    if (res.ok) {
-      const partners: { slug: string; updatedAt?: string }[] = await res.json();
-      partnerPages = partners.map((p) => ({
+    const res = await fetch(`${API}/partners/shop`, {
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch partners');
+
+    const partners: { slug: string; updatedAt?: string }[] = await res.json();
+
+    partnerPages = partners
+      .filter((p) => p.slug) // ✅ sécurité
+      .map((p) => ({
         url: `${BASE}/order?partner=${p.slug}`,
-        lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
+        lastModified: p.updatedAt
+          ? new Date(p.updatedAt)
+          : new Date(),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       }));
-    }
-  } catch { /* silencieux si API indisponible */ }
+  } catch (err) {
+    console.error('Sitemap partners error:', err);
+  }
 
   // Pages dynamiques — opportunités
   let opportunityPages: MetadataRoute.Sitemap = [];
