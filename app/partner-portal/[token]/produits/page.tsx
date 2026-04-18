@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
+import CloudinaryUploader from "@/components/CloudinaryUploader";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -16,34 +17,34 @@ const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: stri
   ],
   Marchand: [
     // Alimentation
-    { id: "viande",       label: "Viandes & Poissons",       icon: "🥩" },
-    { id: "legumes",      label: "Légumes & Fruits",          icon: "🥦" },
-    { id: "epicerie",     label: "Épicerie sèche",            icon: "🌾" },
-    { id: "boisson",      label: "Boissons",                  icon: "🥤" },
-    { id: "laitier",      label: "Produits laitiers",         icon: "🥛" },
-    { id: "boulangerie",  label: "Boulangerie & Pâtisserie",  icon: "🥖" },
-    { id: "alimentation", label: "Alimentation générale",     icon: "🛒" },
+    { id: "viande", label: "Viandes & Poissons", icon: "🥩" },
+    { id: "legumes", label: "Légumes & Fruits", icon: "🥦" },
+    { id: "epicerie", label: "Épicerie sèche", icon: "🌾" },
+    { id: "boisson", label: "Boissons", icon: "🥤" },
+    { id: "laitier", label: "Produits laitiers", icon: "🥛" },
+    { id: "boulangerie", label: "Boulangerie & Pâtisserie", icon: "🥖" },
+    { id: "alimentation", label: "Alimentation générale", icon: "🛒" },
     // Mode & Beauté
-    { id: "cosmetique",   label: "Cosmétique & Beauté",       icon: "💄" },
-    { id: "mode",         label: "Mode & Vêtements",          icon: "👗" },
-    { id: "bijoux",       label: "Bijouterie & Accessoires",  icon: "💍" },
+    { id: "cosmetique", label: "Cosmétique & Beauté", icon: "💄" },
+    { id: "mode", label: "Mode & Vêtements", icon: "👗" },
+    { id: "bijoux", label: "Bijouterie & Accessoires", icon: "💍" },
     // Tech & Telecom
-    { id: "telecom",      label: "Téléphonie & Telecom",      icon: "📱" },
-    { id: "informatique", label: "Informatique & High-Tech",  icon: "💻" },
-    { id: "electromenager", label: "Électroménager",          icon: "🔌" },
+    { id: "telecom", label: "Téléphonie & Telecom", icon: "📱" },
+    { id: "informatique", label: "Informatique & High-Tech", icon: "💻" },
+    { id: "electromenager", label: "Électroménager", icon: "🔌" },
     // Santé & Pharmacie
-    { id: "pharmacie",    label: "Pharmacie & Parapharmacie", icon: "💊" },
+    { id: "pharmacie", label: "Pharmacie & Parapharmacie", icon: "💊" },
     // Maison & Construction
-    { id: "quincaillerie", label: "Quincaillerie & BTP",      icon: "🔨" },
-    { id: "materiaux",    label: "Matériaux de construction", icon: "🧱" },
+    { id: "quincaillerie", label: "Quincaillerie & BTP", icon: "🔨" },
+    { id: "materiaux", label: "Matériaux de construction", icon: "🧱" },
     // Papeterie & Art
-    { id: "librairie",    label: "Librairie & Papeterie",     icon: "📚" },
-    { id: "artisanat",    label: "Artisanat & Art",           icon: "🎨" },
+    { id: "librairie", label: "Librairie & Papeterie", icon: "📚" },
+    { id: "artisanat", label: "Artisanat & Art", icon: "🎨" },
     // Commerce en gros
-    { id: "grossiste",    label: "Grossiste",                 icon: "📦" },
+    { id: "grossiste", label: "Grossiste", icon: "📦" },
     // Autres
-    { id: "hygiene",      label: "Hygiène & Entretien",       icon: "🧼" },
-    { id: "divers",       label: "Maison & Divers",           icon: "🏠" },
+    { id: "hygiene", label: "Hygiène & Entretien", icon: "🧼" },
+    { id: "divers", label: "Maison & Divers", icon: "🏠" },
   ],
 };
 
@@ -426,46 +427,45 @@ export default function PartnerProductsPage() {
                 />
               </div>
 
-              {/* Image with AI */}
+              {/* Image — upload Cloudinary ou génération IA */}
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <label style={{ ...lbl, marginBottom: 0 }}>Image</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ ...lbl, marginBottom: 0 }}>Image du produit</label>
                   <button
                     onClick={handleGenerateImage}
-                    disabled={!name.trim() || generatingImg}
+                    disabled={!name.trim() || generatingImg || !!imageUrl}
                     style={{
                       display: "flex", alignItems: "center", gap: 5,
                       padding: "4px 10px", borderRadius: 99,
                       border: "1px solid #fce7f3", background: "#fdf4ff",
                       color: "#be185d", fontSize: 11, fontWeight: 600,
-                      cursor: name.trim() ? "pointer" : "not-allowed",
-                      opacity: name.trim() ? 1 : 0.5,
+                      cursor: name.trim() && !imageUrl ? "pointer" : "not-allowed",
+                      opacity: name.trim() && !imageUrl ? 1 : 0.4,
                     }}
                   >
-                    {generatingImg ? "⏳…" : "🎨 Générer avec l'IA"}
+                    {generatingImg ? "⏳…" : "🎨 IA"}
                   </button>
                 </div>
 
-                {/* Image preview */}
-                {imagePreview && (
-                  <div style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", height: 140, background: "#fafaf8" }}>
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onLoad={() => setGeneratingImg(false)}
-                    />
+                {/* Upload Cloudinary en priorité */}
+                <CloudinaryUploader
+                  value={imageUrl ? [imageUrl] : []}
+                  onChange={(urls) => { setImageUrl(urls[0] ?? ""); setImagePreview(urls[0] ?? ""); }}
+                  token={token}
+                  folder="products"
+                  max={1}
+                  label=""
+                  aspect="free"
+                  hint="💡 Si vide, cliquez 🎨 IA pour générer automatiquement"
+                />
+
+                {/* Aperçu image IA si pas d'upload */}
+                {!imageUrl && imagePreview && (
+                  <div style={{ marginTop: 8, borderRadius: 10, overflow: "hidden", height: 120, background: "#fafaf8" }}>
+                    <img src={imagePreview} alt="Aperçu IA" style={{ width: "100%", height: "100%", objectFit: "cover" }} onLoad={() => setGeneratingImg(false)} />
+                    <p style={{ fontSize: 10, color: "#aaa", textAlign: "center", marginTop: 4 }}>Image générée par IA — non stockée sur Cloudinary</p>
                   </div>
                 )}
-
-                <input
-                  value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setImagePreview(e.target.value); }}
-                  placeholder="URL de l'image (optionnel)"
-                  style={inp}
-                />
-                <p style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
-                  💡 Si vide, une image IA sera générée automatiquement · Max 1 image par produit
-                </p>
               </div>
 
               {/* Actions */}

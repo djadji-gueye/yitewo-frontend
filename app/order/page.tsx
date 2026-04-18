@@ -9,7 +9,9 @@ export const revalidate = 60;
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 export async function generateMetadata({ searchParams }: { searchParams: { partner?: string } }): Promise<Metadata> {
-  const slug = searchParams?.partner;
+  // const slug = searchParams?.partner;
+  const params = await searchParams;
+  const slug = params?.partner;
   if (!slug) return { title: "Commander" };
 
   try {
