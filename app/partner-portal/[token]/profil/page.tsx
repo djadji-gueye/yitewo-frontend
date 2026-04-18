@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import AddressPicker from "@/components/AddressPicker";
-import CloudinaryUploader from "@/components/CloudinaryUploader";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -90,16 +89,34 @@ export default function PartnerProfilPage() {
       {/* Photo */}
       <section style={card}>
         <h2 style={sTitle}>Photo de la boutique</h2>
-        <CloudinaryUploader
-          value={photoUrl ? [photoUrl] : []}
-          onChange={(urls) => setPhotoUrl(urls[0] ?? "")}
-          token={token}
-          folder="partners"
-          max={1}
-          label="Photo de profil"
-          aspect="square"
-          hint="Photo carrée recommandée · max 5MB · JPG ou PNG"
-        />
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{
+            width: 76, height: 76, borderRadius: 12, overflow: "hidden",
+            background: "#f7f4f2", flexShrink: 0, border: "1px solid #f0ebe8",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            {photoUrl ? (
+              <img src={photoUrl} alt="boutique"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <span style={{ fontSize: 28 }}>{partner?.type === "Restaurant" ? "🍽️" : "🛒"}</span>
+            )}
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>URL de la photo</label>
+            <input
+              value={photoUrl}
+              onChange={(e) => setPhotoUrl(e.target.value)}
+              placeholder="https://…"
+              style={inp}
+            />
+            <p style={{ fontSize: 11, color: "#aaa", marginTop: 5, lineHeight: 1.5 }}>
+              Copiez le lien d'une photo depuis votre téléphone ou Google Images
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Infos fixes */}
@@ -109,10 +126,10 @@ export default function PartnerProfilPage() {
           Ces informations ne peuvent être modifiées que par l'équipe Yitewo.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {[["Nom de la boutique", partner?.name], ["Téléphone", partner?.contact], ["Type", partner?.type]].map(([k, v]) => (
+          {([["Nom de la boutique", partner?.name], ["Téléphone", partner?.contact], ["Type", partner?.type], ["Statut", partner?.isActive ? "✅ Actif" : "⏳ En attente"]] as [string, string][]).map(([k, v]) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#f7f4f2", borderRadius: 10 }}>
               <span style={{ fontSize: 13, color: "#aaa" }}>{k}</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{v}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: k === "Statut" ? (partner?.isActive ? "#10b981" : "#f59e0b") : "#1a1a1a" }}>{v || "—"}</span>
             </div>
           ))}
         </div>
@@ -121,6 +138,13 @@ export default function PartnerProfilPage() {
       {/* Localisation */}
       <section style={card}>
         <h2 style={sTitle}>Localisation</h2>
+        {/* Données actuelles */}
+        {(partner?.city || partner?.zone) && (
+          <div style={{ padding: "8px 12px", background: "#f0f9ff", borderRadius: 8, fontSize: 12, color: "#0369a1", marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}>
+            <span>📍</span>
+            <span>Actuellement : <strong>{partner?.zone ? `${partner.zone}, ` : ""}{partner?.city}</strong></span>
+          </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={lbl}>Ville</label>
@@ -162,16 +186,20 @@ export default function PartnerProfilPage() {
       {/* Bannière */}
       <section style={card}>
         <h2 style={sTitle}>Bannière de la boutique</h2>
-        <CloudinaryUploader
-          value={bannerUrl ? [bannerUrl] : []}
-          onChange={(urls) => setBannerUrl(urls[0] ?? "")}
-          token={token}
-          folder="banners"
-          max={1}
-          label="Bannière (ratio 4:1)"
-          aspect="banner"
-          hint="Taille recommandée : 1200 × 300px · Visible en haut de votre page boutique"
-        />
+        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.5 }}>
+          Taille recommandée : <strong>1200 × 300 px</strong> (ratio 4:1). Visible en haut de votre page boutique.
+        </p>
+        {bannerUrl && !bannerUrl.startsWith("blob") && (
+          <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden", height: 100, background: "#f7f4f2", position: "relative" }}>
+            <img src={bannerUrl} alt="bannière" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          </div>
+        )}
+        <label style={lbl}>URL de la bannière</label>
+        <input value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)}
+          placeholder="https://… (1200×300px recommandé)"
+          style={inp} />
+        <p style={{ fontSize: 11, color: "#aaa", marginTop: 5 }}>💡 Uploadez sur Imgur puis collez le lien Direct Link</p>
       </section>
 
       {/* Lien boutique */}

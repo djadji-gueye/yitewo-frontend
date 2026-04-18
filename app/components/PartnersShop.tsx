@@ -13,6 +13,7 @@ interface Partner {
   city: string;
   zone?: string;
   profileImageUrl?: string;
+  bannerUrl?: string;
   categories?: { name: string }[];
   followers?: number;
   avgRating?: number | null;
@@ -22,14 +23,14 @@ interface Partner {
 }
 
 const TYPE_META: Record<string, { emoji: string; label: string; color: string; bg: string }> = {
-  Marchand:   { emoji: "🛒", label: "Marchand",    color: "#0369a1", bg: "#e0f2fe" },
-  Restaurant: { emoji: "🍽️", label: "Restaurant",  color: "#b45309", bg: "#fef3c7" },
+  Marchand: { emoji: "🛒", label: "Marchand", color: "#0369a1", bg: "#e0f2fe" },
+  Restaurant: { emoji: "🍽️", label: "Restaurant", color: "#b45309", bg: "#fef3c7" },
 };
 
 const BADGE_META: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  top:     { label: "Top vendeur",   color: "#92400e", bg: "#fef3c7", icon: "🏆" },
-  popular: { label: "Populaire",     color: "#6d28d9", bg: "#ede9fe", icon: "🔥" },
-  trusted: { label: "De confiance",  color: "#065f46", bg: "#d1fae5", icon: "✅" },
+  top: { label: "Top vendeur", color: "#92400e", bg: "#fef3c7", icon: "🏆" },
+  popular: { label: "Populaire", color: "#6d28d9", bg: "#ede9fe", icon: "🔥" },
+  trusted: { label: "De confiance", color: "#065f46", bg: "#d1fae5", icon: "✅" },
 };
 
 function getAvatarUrl(name: string, type: string, profileImageUrl?: string) {
@@ -40,7 +41,7 @@ function getAvatarUrl(name: string, type: string, profileImageUrl?: string) {
 }
 
 function getCoverPattern(name: string) {
-  const hue  = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+  const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
   const hue2 = (hue + 60) % 360;
   return `url("data:image/svg+xml,%3Csvg width='400' height='160' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='400' height='160' fill='hsl(${hue},60%25,25%25)'/%3E%3Ccircle cx='350' cy='-20' r='120' fill='hsl(${hue2},70%25,40%25)' opacity='0.6'/%3E%3Ccircle cx='50' cy='180' r='100' fill='hsl(${hue},50%25,15%25)' opacity='0.5'/%3E%3C/svg%3E")`;
 }
@@ -48,7 +49,7 @@ function getCoverPattern(name: string) {
 function StarRating({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
     <span style={{ display: "inline-flex", gap: 1 }}>
-      {[1,2,3,4,5].map((i) => (
+      {[1, 2, 3, 4, 5].map((i) => (
         <span key={i} style={{ fontSize: size, color: i <= Math.round(rating) ? "#f59e0b" : "#e5e7eb" }}>★</span>
       ))}
     </span>
@@ -58,9 +59,9 @@ function StarRating({ rating, size = 12 }: { rating: number; size?: number }) {
 // ── Follow Button ──────────────────────────────────────────
 function FollowButton({ slug, compact = false }: { slug: string; compact?: boolean }) {
   const [following, setFollowing] = useState(false);
-  const [count, setCount]         = useState(0);
-  const [loading, setLoading]     = useState(false);
-  const [phone, setPhone]         = useState("");
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState("");
   const [showInput, setShowInput] = useState(false);
 
   useEffect(() => {
@@ -71,12 +72,12 @@ function FollowButton({ slug, compact = false }: { slug: string; compact?: boole
       fetch(`${BASE}/social/follow/${slug}?phone=${p}`)
         .then((r) => r.json())
         .then((d) => { setFollowing(d.following); setCount(d.followers); })
-        .catch(() => {});
+        .catch(() => { });
     } else {
       fetch(`${BASE}/social/follow/${slug}?phone=_none_`)
         .then((r) => r.json())
         .then((d) => setCount(d.followers))
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [slug]);
 
@@ -142,12 +143,16 @@ function FollowButton({ slug, compact = false }: { slug: string; compact?: boole
 
 // ── Partner Card ───────────────────────────────────────────
 function PartnerCard({ p, index }: { p: Partner; index: number }) {
-  const meta        = TYPE_META[p.type] || TYPE_META.Marchand;
-  const avatarUrl   = getAvatarUrl(p.name, p.type, p.profileImageUrl);
+  const meta = TYPE_META[p.type] || TYPE_META.Marchand;
+  const avatarUrl = getAvatarUrl(p.name, p.type, p.profileImageUrl);
   const coverPattern = getCoverPattern(p.name);
-  const badgeMeta   = p.badge ? BADGE_META[p.badge] : null;
-  const initials    = p.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const badgeMeta = p.badge ? BADGE_META[p.badge] : null;
+  const initials = p.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const promoActive = p.promo && new Date(p.promo.endsAt) > new Date();
+  // Bannière réelle si disponible, sinon pattern généré
+  const coverStyle = p.bannerUrl
+    ? { backgroundImage: `url(${p.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : { backgroundImage: coverPattern, backgroundSize: "cover" };
 
   return (
     <Link href={`/order?partner=${p.slug}`} style={{ textDecoration: "none" }}>
@@ -170,12 +175,17 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
           </div>
         )}
 
-        {/* Cover */}
+        {/* Cover — bannière réelle (background du nom) ou pattern généré */}
         <div style={{
-          height: promoActive ? 96 : 120, backgroundImage: coverPattern,
-          backgroundSize: "cover", position: "relative",
+          height: promoActive ? 96 : 120,
+          ...coverStyle,
+          position: "relative",
           paddingTop: promoActive ? 28 : 0,
         }}>
+          {/* Dégradé bas si bannière réelle — pour lisibilité du nom */}
+          {p.bannerUrl && (
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)", borderRadius: "inherit", pointerEvents: "none" }} />
+          )}
           {/* Badge */}
           {badgeMeta && (
             <div style={{
@@ -259,10 +269,10 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
 
 // ── Main PartnersShop ──────────────────────────────────────
 export default function PartnersShop({ partners }: { partners: Partner[] }) {
-  const [search, setSearch]   = useState("");
+  const [search, setSearch] = useState("");
   const [typeFilter, setType] = useState<"all" | "Marchand" | "Restaurant">("all");
   const [cityFilter, setCity] = useState("all");
-  const [sortBy, setSort]     = useState<"name" | "rating" | "followers">("rating");
+  const [sortBy, setSort] = useState<"name" | "rating" | "followers">("rating");
 
   const cities = useMemo(() => {
     const c = [...new Set(partners.map((p) => p.city))].sort();
@@ -285,7 +295,7 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
       );
     }
     return [...list].sort((a, b) => {
-      if (sortBy === "rating")    return (b.avgRating || 0) - (a.avgRating || 0);
+      if (sortBy === "rating") return (b.avgRating || 0) - (a.avgRating || 0);
       if (sortBy === "followers") return (b.followers || 0) - (a.followers || 0);
       return a.name.localeCompare(b.name);
     });
@@ -311,7 +321,7 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
           <div style={{ position: "relative", maxWidth: 480 }}>
             <svg style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.5)" }}
               width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
               value={search} onChange={(e) => setSearch(e.target.value)}
@@ -345,7 +355,7 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
       <div style={{ background: "#fff", borderBottom: "1px solid var(--border)", padding: "12px 20px", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           {/* Type */}
-          {(["all","Marchand","Restaurant"] as const).map((t) => (
+          {(["all", "Marchand", "Restaurant"] as const).map((t) => (
             <button key={t} onClick={() => setType(t)} style={{
               padding: "6px 14px", borderRadius: 99, fontSize: 12, cursor: "pointer",
               border: `1px solid ${typeFilter === t ? "var(--brand)" : "var(--border)"}`,

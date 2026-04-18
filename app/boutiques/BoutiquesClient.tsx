@@ -152,15 +152,59 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Partner | null>(null);
   const [sidebarOpen, setSidebar] = useState(true);
+  const [filterCat, setFilterCat] = useState("");
   const [listView, setListView] = useState(
     typeof window !== "undefined" && window.innerWidth < 768
   );
+  // Géolocalisation "Près de chez vous"
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+  const [nearMode, setNearMode] = useState(false);
+  const [radius, setRadius] = useState(2); // km
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState("");
+
+  // Haversine distance en km
+  const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const handleNearMe = () => {
+    if (nearMode) { setNearMode(false); setGeoError(""); return; }
+    if (!navigator.geolocation) { setGeoError("Géolocalisation non supportée"); return; }
+    setGeoLoading(true); setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setUserLat(pos.coords.latitude); setUserLng(pos.coords.longitude); setNearMode(true); setGeoLoading(false); },
+      () => { setGeoError("Position refusée — activez la localisation"); setGeoLoading(false); },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  };
 
   const cities = useMemo(() => [...new Set(partners.map((p) => p.city))].sort(), [partners]);
 
+  // Catégories disponibles selon le contexte (nearMode = boutiques proches, sinon ville)
+  const availableCategories = useMemo(() => {
+    const base = nearMode && userLat && userLng
+      ? partners.filter((p) => p.lat && p.lng)
+      : partners.filter((p) => p.city === city);
+    const cats = new Set<string>();
+    base.forEach((p) => p.categories?.forEach((c) => cats.add(c.name)));
+    return Array.from(cats).sort();
+  }, [partners, city, nearMode, userLat, userLng]);
+
   const filtered = useMemo(() => {
-    let list = partners.filter((p) => p.city === city);
+    let list = nearMode && userLat && userLng
+      ? partners.filter((p) => {
+        if (!p.lat || !p.lng) return false;
+        return haversine(userLat, userLng, p.lat, p.lng) <= radius;
+      })
+      : partners.filter((p) => p.city === city);
     if (typeFilter !== "all") list = list.filter((p) => p.type === typeFilter);
+    if (filterCat) list = list.filter((p) => p.categories?.some((c) => c.name === filterCat));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((p) =>
@@ -169,8 +213,16 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
         p.categories?.some((c) => c.name.toLowerCase().includes(q))
       );
     }
+    // Trier par distance si mode "Près de chez vous"
+    if (nearMode && userLat && userLng) {
+      list = [...list].sort((a, b) => {
+        const dA = a.lat && a.lng ? haversine(userLat, userLng, a.lat, a.lng) : 999;
+        const dB = b.lat && b.lng ? haversine(userLat, userLng, b.lat, b.lng) : 999;
+        return dA - dB;
+      });
+    }
     return list;
-  }, [partners, city, typeFilter, search]);
+  }, [partners, city, typeFilter, filterCat, search, nearMode, userLat, userLng, radius]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "var(--surface)", fontFamily: "DM Sans, sans-serif" }}>
@@ -217,6 +269,39 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
             ))}
           </div>
 
+          {/* Bouton Près de chez vous */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <button
+              onClick={handleNearMe}
+              disabled={geoLoading}
+              style={{
+                padding: "7px 14px", borderRadius: 99,
+                border: nearMode ? "none" : "1px solid rgba(255,255,255,0.3)",
+                background: nearMode ? "#10b981" : "rgba(255,255,255,0.15)",
+                color: "#fff", fontSize: 12, fontWeight: nearMode ? 700 : 400,
+                cursor: geoLoading ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+                boxShadow: nearMode ? "0 0 0 3px rgba(16,185,129,0.3)" : "none",
+                transition: "all .2s",
+              }}
+            >
+              {geoLoading ? "⏳" : nearMode ? "✓ Près de moi" : "📍 Près de chez vous"}
+            </button>
+            {/* Slider distance */}
+            {nearMode && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "6px 10px" }}>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap" }}>Rayon :</span>
+                <input
+                  type="range" min={0.5} max={20} step={0.5} value={radius}
+                  onChange={(e) => setRadius(Number(e.target.value))}
+                  style={{ width: 100, accentColor: "#10b981", cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700, minWidth: 38 }}>{radius} km</span>
+              </div>
+            )}
+            {geoError && <span style={{ fontSize: 10, color: "#fca5a5" }}>{geoError}</span>}
+          </div>
+
           {/* Toggle view */}
           <button onClick={() => setListView(!listView)} style={{
             padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)",
@@ -245,8 +330,15 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
                 <span>🛒 Marchand</span>
                 <span>🍽️ Restaurant</span>
                 <span>🔥 Promo active</span>
+                {nearMode && <span>📍 Vous</span>}
               </div>
             </div>
+            {/* Badge résultats "Près de moi" */}
+            {nearMode && (
+              <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "#10b981", color: "#fff", borderRadius: 99, padding: "5px 14px", fontSize: 12, fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+                📍 {filtered.length} boutique{filtered.length > 1 ? "s" : ""} dans un rayon de {radius} km
+              </div>
+            )}
           </div>
         )}
 
@@ -363,7 +455,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
           </div>
         )}
 
-        {/* Partners list sidebar — toggleable */}
+        {/* Partners list sidebar — toggleable avec bouton flottant */}
         {!listView && !selected && filtered.length > 0 && (
           <>
             {/* Bouton toggle flottant sur la carte */}
@@ -371,35 +463,97 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
               onClick={() => setSidebar(!sidebarOpen)}
               title={sidebarOpen ? "Masquer la liste" : "Afficher la liste"}
               style={{
-                position: "absolute", right: sidebarOpen ? 292 : 12, top: 12, zIndex: 1001,
-                width: 34, height: 34, borderRadius: 8, border: "1px solid var(--border)",
-                background: "#fff", cursor: "pointer", fontSize: 13,
+                position: "absolute",
+                right: sidebarOpen ? 292 : 12,
+                top: nearMode ? 52 : 12,
+                zIndex: 1001,
+                width: 36, height: 36,
+                borderRadius: 10,
+                border: "1px solid var(--border)",
+                background: sidebarOpen ? "#fff" : "#E8380D",
+                color: sidebarOpen ? "var(--text)" : "#fff",
+                cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.12)", transition: "right 0.3s ease",
+                fontSize: 13, fontWeight: 700,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+                transition: "right 0.3s ease, background 0.2s",
               }}
             >
-              {sidebarOpen ? "▶" : "◀"}
+              {sidebarOpen ? "▶" : "◀ " + filtered.length}
             </button>
 
+            {/* Sidebar */}
             {sidebarOpen && (
               <div style={{
                 width: 280, flexShrink: 0, background: "#fff",
                 borderLeft: "1px solid var(--border)", overflowY: "auto",
-                animation: "slideInRight 0.25s ease",
+                animation: "slideIn .25s ease",
               }}>
-                <style>{"@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}"}</style>
-                <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <p style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, color: "var(--text)" }}>
-                    {filtered.length} boutique{filtered.length > 1 ? "s" : ""} à {city}
-                  </p>
-                  <button onClick={() => setSidebar(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 16, padding: 2 }}>✕</button>
+                <style>{"@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}"}</style>
+                {/* Header sidebar */}
+                <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: nearMode ? 0 : 6 }}>
+                    <p style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 13, color: "var(--text)" }}>
+                      {nearMode
+                        ? `📍 ${filtered.length} près de vous (${radius}km)`
+                        : `${filtered.length} boutique${filtered.length > 1 ? "s" : ""}`}
+                    </p>
+                    <button onClick={() => setSidebar(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 16, padding: 2, lineHeight: 1 }}>✕</button>
+                  </div>
+                  {/* Invitation géoloc si pas encore activé */}
+                  {!nearMode && (
+                    <button
+                      onClick={handleNearMe}
+                      disabled={geoLoading}
+                      style={{
+                        width: "100%", padding: "7px 10px", borderRadius: 8,
+                        border: "1px dashed #10b981", background: "#f0fdf4",
+                        color: "#065f46", fontSize: 12, fontWeight: 600,
+                        cursor: geoLoading ? "not-allowed" : "pointer",
+                        display: "flex", alignItems: "center", gap: 6,
+                        transition: "all .2s",
+                      }}
+                    >
+                      <span>{geoLoading ? "⏳" : "📍"}</span>
+                      <span>{geoLoading ? "Localisation…" : "Voir les boutiques près de moi"}</span>
+                    </button>
+                  )}
+                  {geoError && (
+                    <p style={{ fontSize: 11, color: "#ef4444", marginTop: 4 }}>{geoError}</p>
+                  )}
                 </div>
+                {/* Filtres catégories */}
+                {availableCategories.length > 0 && (
+                  <div style={{ padding: "8px 14px 10px", borderBottom: "1px solid var(--border)" }}>
+                    <p style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600, marginBottom: 6, letterSpacing: "0.05em" }}>CATÉGORIES</p>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => setFilterCat("")}
+                        style={{ padding: "4px 10px", borderRadius: 99, border: `1.5px solid ${!filterCat ? "var(--brand)" : "var(--border)"}`, background: !filterCat ? "var(--brand-light)" : "#fff", color: !filterCat ? "var(--brand)" : "var(--muted)", fontSize: 11, fontWeight: !filterCat ? 700 : 400, cursor: "pointer" }}
+                      >
+                        Toutes
+                      </button>
+                      {availableCategories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setFilterCat(filterCat === cat ? "" : cat)}
+                          style={{ padding: "4px 10px", borderRadius: 99, border: `1.5px solid ${filterCat === cat ? "var(--brand)" : "var(--border)"}`, background: filterCat === cat ? "var(--brand-light)" : "#fff", color: filterCat === cat ? "var(--brand)" : "var(--muted)", fontSize: 11, fontWeight: filterCat === cat ? 700 : 400, cursor: "pointer", whiteSpace: "nowrap" as const }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Liste */}
                 <div style={{ padding: "8px" }}>
                   {filtered.map((p) => (
                     <button key={p.id} onClick={() => setSelected(p)} style={{
                       width: "100%", textAlign: "left", padding: "10px 12px",
                       borderRadius: 10, border: "none", cursor: "pointer",
-                      background: "transparent", marginBottom: 4, transition: "background 0.15s",
+                      background: "transparent", marginBottom: 4,
+                      transition: "background 0.15s",
                     }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
