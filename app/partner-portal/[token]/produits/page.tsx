@@ -7,20 +7,7 @@ import CloudinaryUploader from "@/components/CloudinaryUploader";
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: string }[]> = {
-  Restaurant: [
-    { id: "plat", label: "Plats", icon: "🍽️" },
-    { id: "entree", label: "Entrées", icon: "🥗" },
-    { id: "boisson", label: "Boissons", icon: "🥤" },
-    { id: "dessert", label: "Desserts", icon: "🍰" },
-    { id: "snack", label: "Snacks", icon: "🥪" },
-    { id: "special", label: "Spéciaux", icon: "⭐" },
-  ],
-
   Marchand: [
-    // Mode & Beauté
-    { id: "cosmetique", label: "Cosmétique & Beauté", icon: "💄" },
-    { id: "mode", label: "Mode & Vêtements", icon: "👗" },
-    { id: "bijoux", label: "Bijouterie & Accessoires", icon: "💍" },
     // Alimentation
     { id: "viande", label: "Viandes & Poissons", icon: "🥩" },
     { id: "legumes", label: "Légumes & Fruits", icon: "🥦" },
@@ -29,6 +16,10 @@ const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: stri
     { id: "laitier", label: "Produits laitiers", icon: "🥛" },
     { id: "boulangerie", label: "Boulangerie & Pâtisserie", icon: "🥖" },
     { id: "alimentation", label: "Alimentation générale", icon: "🛒" },
+    // Mode & Beauté
+    { id: "cosmetique", label: "Cosmétique & Beauté", icon: "💄" },
+    { id: "mode", label: "Mode & Vêtements", icon: "👗" },
+    { id: "bijoux", label: "Bijouterie & Accessoires", icon: "💍" },
     // Tech & Telecom
     { id: "telecom", label: "Téléphonie & Telecom", icon: "📱" },
     { id: "informatique", label: "Informatique & High-Tech", icon: "💻" },
@@ -47,6 +38,14 @@ const CATEGORIES_BY_TYPE: Record<string, { id: string; label: string; icon: stri
     { id: "hygiene", label: "Hygiène & Entretien", icon: "🧼" },
     { id: "divers", label: "Maison & Divers", icon: "🏠" },
   ],
+  Restaurant: [
+    { id: "plat", label: "Plats", icon: "🍽️" },
+    { id: "entree", label: "Entrées", icon: "🥗" },
+    { id: "boisson", label: "Boissons", icon: "🥤" },
+    { id: "dessert", label: "Desserts", icon: "🍰" },
+    { id: "snack", label: "Snacks", icon: "🥪" },
+    { id: "special", label: "Spéciaux", icon: "⭐" },
+  ]
 };
 
 // Génère une image via Pollinations.ai
@@ -88,8 +87,6 @@ export default function PartnerProductsPage() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [viewProduct, setViewProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [generatingDesc, setGeneratingDesc] = useState(false);
   const [generatingImg, setGeneratingImg] = useState(false);
@@ -118,7 +115,6 @@ export default function PartnerProductsPage() {
     setName(""); setPrice("");
     setCategory(CATEGORIES_BY_TYPE[partner?.type]?.[0]?.id ?? "plat");
     setDescription(""); setImageUrl(""); setImagePreview("");
-    setImageUrls([]);
     setEditing(null); setMode(null);
   };
 
@@ -130,9 +126,6 @@ export default function PartnerProductsPage() {
     setDescription(product.description || "");
     setImageUrl(product.imageUrl || "");
     setImagePreview(product.imageUrl || "");
-    // Charger toutes les images existantes
-    const allImgs = product.imageUrls?.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : [];
-    setImageUrls(allImgs);
     setMode("edit");
   };
 
@@ -162,14 +155,12 @@ export default function PartnerProductsPage() {
     if (!name.trim() || !price) return;
     setSaving(true);
     try {
-      const allImgs = imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [];
       const body = {
         name: name.trim(),
         price: Number(price),
         category,
         description: description || undefined,
-        imageUrl: allImgs[0] || generateImageUrl(name),
-        imageUrls: allImgs.length > 0 ? allImgs : undefined,
+        imageUrl: imageUrl || generateImageUrl(name),
         token,
       };
 
@@ -270,7 +261,6 @@ export default function PartnerProductsPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
           {filtered.map((product) => {
             const cat = MEAL_CATEGORIES.find((c) => c.id === product.category);
-            const productImgs = product.imageUrls?.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : [];
             return (
               <div key={product.id} style={{
                 background: "#fff", borderRadius: 16,
@@ -288,25 +278,16 @@ export default function PartnerProductsPage() {
                   (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
                 }}
               >
-                {/* Image — cliquable pour popup */}
-                <div
-                  onClick={() => setViewProduct(product)}
-                  style={{ height: 150, overflow: "hidden", position: "relative", background: "#fafaf8", cursor: "pointer" }}
-                >
+                {/* Image */}
+                <div style={{ height: 150, overflow: "hidden", position: "relative", background: "#fafaf8" }}>
                   <img
-                    src={productImgs[0] || generateImageUrl(product.name)}
+                    src={product.imageUrl || generateImageUrl(product.name)}
                     alt={product.name}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = `https://image.pollinations.ai/prompt/${encodeURIComponent(product.name + ", food photography")}?width=400&height=300&nologo=true`;
                     }}
                   />
-                  {/* Indicateur multi-photos */}
-                  {productImgs.length > 1 && (
-                    <span style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 99 }}>
-                      📷 {productImgs.length}
-                    </span>
-                  )}
                   {/* Category badge */}
                   <span style={{
                     position: "absolute", top: 8, left: 8,
@@ -364,54 +345,6 @@ export default function PartnerProductsPage() {
           })}
         </div>
       )}
-
-      {/* ── Popup détail produit ── */}
-      {viewProduct && (() => {
-        const vpImgs = viewProduct.imageUrls?.length ? viewProduct.imageUrls : viewProduct.imageUrl ? [viewProduct.imageUrl] : [];
-        const vpCat = MEAL_CATEGORIES.find((c: any) => c.id === viewProduct.category);
-        return (
-          <>
-            <div onClick={() => setViewProduct(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, backdropFilter: "blur(3px)" }} />
-            <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "#fff", borderRadius: 20, width: "100%", maxWidth: 440, zIndex: 201, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
-              {/* Galerie photos */}
-              {vpImgs.length > 0 && (
-                <div>
-                  {/* Photo principale */}
-                  <GalleryViewer images={vpImgs} />
-                </div>
-              )}
-              {vpImgs.length === 0 && (
-                <div style={{ height: 200, background: "#fafaf8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <img src={generateImageUrl(viewProduct.name)} alt={viewProduct.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                </div>
-              )}
-              {/* Info */}
-              <div style={{ padding: "20px 20px 24px" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-                  <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 20, color: "#1a1a1a", lineHeight: 1.2 }}>{viewProduct.name}</h2>
-                  <button onClick={() => setViewProduct(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 20, flexShrink: 0, padding: 4 }}>✕</button>
-                </div>
-                {vpCat && (
-                  <span style={{ display: "inline-block", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 99, background: "#f0ebe8", color: "#6b6b6b", marginBottom: 10 }}>
-                    {vpCat.icon} {vpCat.label}
-                  </span>
-                )}
-                {viewProduct.description && (
-                  <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 14 }}>{viewProduct.description}</p>
-                )}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 22, color: "#E8380D" }}>
-                    {viewProduct.price?.toLocaleString()} <span style={{ fontSize: 12, fontWeight: 500 }}>FCFA</span>
-                  </span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => { setViewProduct(null); openEdit(viewProduct); }} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", color: "#6b6b6b", fontSize: 13, cursor: "pointer", fontWeight: 500 }}>✏️ Modifier</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        );
-      })()}
 
       {/* ── Add/Edit Modal ── */}
       {mode && (
@@ -494,46 +427,45 @@ export default function PartnerProductsPage() {
                 />
               </div>
 
-              {/* Image with AI */}
+              {/* Image — upload Cloudinary ou génération IA */}
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <label style={{ ...lbl, marginBottom: 0 }}>Image</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ ...lbl, marginBottom: 0 }}>Image du produit</label>
                   <button
                     onClick={handleGenerateImage}
-                    disabled={!name.trim() || generatingImg}
+                    disabled={!name.trim() || generatingImg || !!imageUrl}
                     style={{
                       display: "flex", alignItems: "center", gap: 5,
                       padding: "4px 10px", borderRadius: 99,
                       border: "1px solid #fce7f3", background: "#fdf4ff",
                       color: "#be185d", fontSize: 11, fontWeight: 600,
-                      cursor: name.trim() ? "pointer" : "not-allowed",
-                      opacity: name.trim() ? 1 : 0.5,
+                      cursor: name.trim() && !imageUrl ? "pointer" : "not-allowed",
+                      opacity: name.trim() && !imageUrl ? 1 : 0.4,
                     }}
                   >
-                    {generatingImg ? "⏳…" : "🎨 Générer avec l'IA"}
+                    {generatingImg ? "⏳…" : "🎨 IA"}
                   </button>
                 </div>
 
-                {/* Image preview */}
-                {imagePreview && (
-                  <div style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", height: 140, background: "#fafaf8" }}>
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onLoad={() => setGeneratingImg(false)}
-                    />
+                {/* Upload Cloudinary en priorité */}
+                <CloudinaryUploader
+                  value={imageUrl ? [imageUrl] : []}
+                  onChange={(urls) => { setImageUrl(urls[0] ?? ""); setImagePreview(urls[0] ?? ""); }}
+                  token={token}
+                  folder="products"
+                  max={1}
+                  label=""
+                  aspect="free"
+                  hint="💡 Si vide, cliquez 🎨 IA pour générer automatiquement"
+                />
+
+                {/* Aperçu image IA si pas d'upload */}
+                {!imageUrl && imagePreview && (
+                  <div style={{ marginTop: 8, borderRadius: 10, overflow: "hidden", height: 120, background: "#fafaf8" }}>
+                    <img src={imagePreview} alt="Aperçu IA" style={{ width: "100%", height: "100%", objectFit: "cover" }} onLoad={() => setGeneratingImg(false)} />
+                    <p style={{ fontSize: 10, color: "#aaa", textAlign: "center", marginTop: 4 }}>Image générée par IA — non stockée sur Cloudinary</p>
                   </div>
                 )}
-
-                <input
-                  value={imageUrl} onChange={(e) => { setImageUrl(e.target.value); setImagePreview(e.target.value); }}
-                  placeholder="URL de l'image (optionnel)"
-                  style={inp}
-                />
-                <p style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
-                  💡 Si vide, une image IA sera générée automatiquement · Max 1 image par produit
-                </p>
               </div>
 
               {/* Actions */}
@@ -562,47 +494,6 @@ export default function PartnerProductsPage() {
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
-}
-
-// ── Galerie photos défilable dans le popup ────────────────
-function GalleryViewer({ images }: { images: string[] }) {
-  const [idx, setIdx] = useState(0);
-  if (!images.length) return null;
-  return (
-    <div style={{ position: "relative" }}>
-      {/* Image principale */}
-      <div style={{ height: 260, background: "#fafaf8", overflow: "hidden", borderRadius: "20px 20px 0 0", position: "relative" }}>
-        <img
-          src={images[idx]}
-          alt={`Photo ${idx + 1}`}
-          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-        />
-        {/* Chevrons navigation */}
-        {images.length > 1 && idx > 0 && (
-          <button onClick={() => setIdx(idx - 1)} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 32, height: 32, borderRadius: 99, background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-        )}
-        {images.length > 1 && idx < images.length - 1 && (
-          <button onClick={() => setIdx(idx + 1)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 32, height: 32, borderRadius: 99, background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-        )}
-        {/* Compteur */}
-        {images.length > 1 && (
-          <div style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 99 }}>
-            {idx + 1} / {images.length}
-          </div>
-        )}
-      </div>
-      {/* Miniatures */}
-      {images.length > 1 && (
-        <div style={{ display: "flex", gap: 8, padding: "10px 16px", background: "#fafaf8", overflowX: "auto", scrollbarWidth: "none" }}>
-          {images.map((url, i) => (
-            <button key={i} onClick={() => setIdx(i)} style={{ width: 52, height: 52, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: `2px solid ${idx === i ? "#E8380D" : "transparent"}`, padding: 0, cursor: "pointer", background: "#f0f0f0", transition: "border .15s" }}>
-              <img src={url} alt={`Miniature ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </button>
-          ))}
-        </div>
       )}
     </div>
   );
