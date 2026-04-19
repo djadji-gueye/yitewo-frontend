@@ -44,6 +44,13 @@ export default function ServiceProviderForm() {
   const [profileImageUrl, setProfileImageUrl] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
+  const [workImageUrl, setWorkImageUrl] = useState("");
+  const [workImageUploading, setWorkImageUploading] = useState(false);
+  const [workImagePreview, setWorkImagePreview] = useState("");
+  const [cameraMode, setCameraMode] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<Status>("form");
   const [error, setError] = useState("");
 
@@ -105,13 +112,59 @@ export default function ServiceProviderForm() {
     }
   };
 
+  // ── Caméra selfie ─────────────────────────────────────
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      setCameraStream(stream);
+      setCameraMode(true);
+      setTimeout(() => { if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); } }, 100);
+    } catch { setError("Impossible d'accéder à la caméra. Vérifiez les permissions."); }
+  };
+
+  const stopCamera = () => {
+    cameraStream?.getTracks().forEach((t) => t.stop());
+    setCameraStream(null); setCameraMode(false);
+  };
+
+  const takeSelfie = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d")!.drawImage(videoRef.current, 0, 0);
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      stopCamera();
+      const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+      setImagePreview(URL.createObjectURL(file));
+      await handleImageUpload(file);
+    }, "image/jpeg", 0.9);
+  };
+
+  // ── Upload photo de terrain/bureau ─────────────────────
+  const handleWorkImageUpload = async (file: File) => {
+    setWorkImageUploading(true);
+    const reader = new FileReader();
+    reader.onload = (e) => setWorkImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${BASE}/partners/upload-profile-image`, { method: "POST", body: fd });
+      const data = await res.json();
+      setWorkImageUrl(data.url);
+    } catch { setError("Erreur lors de l'upload de la photo de travail."); }
+    finally { setWorkImageUploading(false); }
+  };
+
   const toggleCategory = (cat: string) =>
     setSelectedCategories((prev) => prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]);
 
   const toggleAvailability = (opt: string) =>
     setAvailability((prev) => prev.includes(opt) ? prev.filter((a) => a !== opt) : [...prev, opt]);
 
-  const canSend = name && city && contact && selectedCategories.length > 0;
+  const canSend = name && city && contact && selectedCategories.length > 0 && profileImageUrl && workImageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +180,7 @@ export default function ServiceProviderForm() {
           experience ? `Expérience : ${experience}` : null,
           availability.length ? `Disponibilité : ${availability.join(", ")}` : null,
           bio ? `À propos : ${bio}` : null,
+          workImageUrl ? `Photo terrain : ${workImageUrl}` : null,
         ].filter(Boolean).join(" | ") || undefined,
         serviceCategories: selectedCategories,
         profileImageUrl: profileImageUrl || undefined,
@@ -157,52 +211,93 @@ export default function ServiceProviderForm() {
 
       {/* ── Photo de profil ── */}
       <div>
-        <label style={labelStyle}>📷 Photo de profil <span style={{ color: "var(--muted)", fontWeight: 400 }}>(optionnelle)</span></label>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <label style={labelStyle}>
+          🪪 Photo de profil (selfie) *
+          <span style={{ fontSize: 11, fontWeight: 400, color: "#ef4444", marginLeft: 6 }}>Obligatoire — photo réelle de la personne</span>
+        </label>
+
+        {/* Alerte importance */}
+        <div style={{ padding: "10px 12px", background: "#fff3f0", border: "1px solid #fdd0c5", borderRadius: 10, fontSize: 12, color: "#c22d09", lineHeight: 1.6, marginBottom: 10 }}>
+          🔐 <strong>Pourquoi cette photo est obligatoire ?</strong> Pour garantir la sécurité de nos clients, nous vérifions l'identité de chaque prestataire. Votre photo de profil doit être un vrai selfie, pas un logo ou une image fictive.
+        </div>
+
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
           {/* Avatar preview */}
-          <div style={{
-            width: 76, height: 76, borderRadius: "50%",
-            border: "2px solid var(--border, #e5e5e5)",
-            overflow: "hidden", flexShrink: 0,
-            background: imagePreview ? "transparent" : `linear-gradient(135deg, hsl(${hue},50%,30%), hsl(${(hue + 60) % 360},60%,45%))`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}>
-            {imagePreview ? (
-              <img src={imagePreview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <span style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 22, color: "#fff" }}>{initials}</span>
-            )}
+          <div style={{ width: 80, height: 80, borderRadius: "50%", border: `3px solid ${profileImageUrl ? "#10b981" : "#ef4444"}`, overflow: "hidden", flexShrink: 0, background: imagePreview ? "transparent" : `linear-gradient(135deg, hsl(${hue},50%,30%), hsl(${(hue + 60) % 360},60%,45%))`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            {imagePreview
+              ? <img src={imagePreview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 22, color: "#fff" }}>{initials}</span>}
           </div>
 
-          {/* Upload zone */}
-          <label style={{
-            cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            gap: 4,
-            padding: "14px 20px",
-            borderRadius: 12,
-            border: "1.5px dashed var(--border, #e5e5e5)",
-            fontSize: 13, color: "var(--muted)",
-            fontFamily: "DM Sans",
-            transition: "all 0.2s",
-            flex: 1,
-            background: "#fafafa",
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--brand)"; e.currentTarget.style.background = "var(--brand-light, #fff5f3)"; }}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Bouton caméra selfie */}
+            {!cameraMode ? (
+              <>
+                <button type="button" onClick={startCamera}
+                  style={{ padding: "10px 16px", borderRadius: 10, border: "none", background: "#E8380D", color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+                  📷 Prendre un selfie en direct
+                </button>
+                <label style={{ padding: "9px 16px", borderRadius: 10, border: "1.5px dashed var(--border, #e5e5e5)", fontSize: 12, color: "var(--muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, background: "#fafafa" }}>
+                  <span>📁</span>
+                  <span>{imageUploading ? "Envoi…" : imagePreview ? "Changer la photo" : "Ou choisir depuis la galerie"}</span>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]); }} />
+                </label>
+              </>
+            ) : (
+              <div style={{ width: "100%", borderRadius: 12, overflow: "hidden", border: "2px solid #E8380D", background: "#000" }}>
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+                <div style={{ display: "flex", gap: 8, padding: 8 }}>
+                  <button type="button" onClick={takeSelfie}
+                    style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#E8380D", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                    📸 Capturer
+                  </button>
+                  <button type="button" onClick={stopCamera}
+                    style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #333", background: "transparent", color: "#fff", fontSize: 13, cursor: "pointer" }}>
+                    ✕ Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+            {profileImageUrl && <p style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>✓ Photo de profil enregistrée</p>}
+            {!profileImageUrl && <p style={{ fontSize: 11, color: "#ef4444" }}>⚠️ Photo obligatoire avant soumission</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Photo de terrain/bureau (obligatoire) ── */}
+      <div>
+        <label style={labelStyle}>
+          🏗️ Photo de votre lieu de travail ou terrain *
+          <span style={{ fontSize: 11, fontWeight: 400, color: "#ef4444", marginLeft: 6 }}>Obligatoire</span>
+        </label>
+        <div style={{ padding: "10px 12px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, fontSize: 12, color: "#065f46", lineHeight: 1.6, marginBottom: 10 }}>
+          💡 Montrez votre espace de travail, votre matériel ou une photo de vous en action. Cela rassure les clients et augmente vos chances d'être contacté.
+        </div>
+
+        {workImagePreview ? (
+          <div style={{ borderRadius: 12, overflow: "hidden", height: 160, position: "relative", marginBottom: 8 }}>
+            <img src={workImagePreview} alt="Lieu de travail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <div style={{ position: "absolute", top: 8, right: 8 }}>
+              <label style={{ padding: "4px 10px", borderRadius: 99, background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 11, cursor: "pointer" }}>
+                Changer
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleWorkImageUpload(e.target.files[0]); }} />
+              </label>
+            </div>
+            {workImageUrl && <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(16,185,129,0.9)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99 }}>✓ Photo enregistrée</div>}
+          </div>
+        ) : (
+          <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: "28px 20px", borderRadius: 12, border: "1.5px dashed var(--border, #e5e5e5)", cursor: "pointer", background: "#fafafa", transition: "all .2s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#10b981"; e.currentTarget.style.background = "#f0fdf4"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border, #e5e5e5)"; e.currentTarget.style.background = "#fafafa"; }}
           >
-            <span style={{ fontSize: 22 }}>{imageUploading ? "⏳" : imagePreview ? "✅" : "📸"}</span>
-            <span style={{ fontWeight: 600, fontSize: 12 }}>
-              {imageUploading ? "Envoi en cours…" : imagePreview ? "Photo ajoutée — changer" : "Ajouter une photo"}
-            </span>
-            <span style={{ fontSize: 11, color: "#bbb" }}>JPG, PNG, WEBP · max 5MB</span>
-            <input
-              type="file" accept="image/*" style={{ display: "none" }}
-              onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]); }}
-            />
+            <span style={{ fontSize: 32 }}>{workImageUploading ? "⏳" : "🏗️"}</span>
+            <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text)" }}>{workImageUploading ? "Upload en cours…" : "Ajouter une photo de terrain"}</span>
+            <span style={{ fontSize: 11, color: "#bbb" }}>Bureau, chantier, matériel, vous en action · max 5MB</span>
+            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleWorkImageUpload(e.target.files[0]); }} />
           </label>
-        </div>
+        )}
+        {!workImageUrl && <p style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>⚠️ Photo de lieu de travail obligatoire avant soumission</p>}
       </div>
 
       {/* ── Nom ── */}

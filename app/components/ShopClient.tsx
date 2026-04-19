@@ -92,7 +92,7 @@ export default function ShopClient({
           }));
           setProducts(list);
           const first = list?.[0]?.category?.name;
-          if (first) setSelectedCategory(first);
+          // Ne pas auto-sélectionner — rester sur "Tous" par défaut
         })
         .catch(console.error)
         .finally(() => setLoading(false));
@@ -111,7 +111,7 @@ export default function ShopClient({
           const list = Array.isArray(data) ? data : data?.data ?? [];
           setProducts(list);
           const first = list?.[0]?.category?.name;
-          if (first) setSelectedCategory(first);
+          // Ne pas auto-sélectionner — rester sur "Tous" par défaut
         })
         .catch(console.error)
         .finally(() => setLoading(false));
