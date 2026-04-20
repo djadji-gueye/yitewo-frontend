@@ -24,7 +24,6 @@ interface Partner {
   city: string;
   slug?: string;
   contact: string;
-  message: string;
   bannerUrl?: string;
 }
 
@@ -195,28 +194,9 @@ export default function ShopClient({
           }}>
             {partner ? partner.name : "Nos produits"}
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, marginBottom: 6, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
+          <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, marginBottom: partner ? 14 : 0, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>
             {partner ? `📍 ${partner.city || city}` : `Boutique à ${city}`}
           </p>
-
-          {/* Description boutique — ergonomique sous l'adresse */}
-          {partner?.message && (
-            <p style={{
-              color: "rgba(255,255,255,0.75)",
-              fontSize: 13,
-              lineHeight: 1.6,
-              maxWidth: 520,
-              marginBottom: 12,
-              textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-              fontStyle: "italic",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical" as any,
-              overflow: "hidden",
-            }}>
-              {partner.message}
-            </p>
-          )}
 
           {/* Promo */}
           {promo && (

@@ -21,8 +21,6 @@ export default function PartnerProfilPage() {
   const [zone, setZone] = useState("");
   const [city, setCity] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [description, setDescription] = useState("");
-  const [generatingDesc, setGeneratingDesc] = useState(false);
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState<number | undefined>(undefined);
   const [lng, setLng] = useState<number | undefined>(undefined);
@@ -38,27 +36,12 @@ export default function PartnerProfilPage() {
         setCity(data.city || "");
         setPhotoUrl(data.profileImageUrl || "");
         setAddress(data.address || "");
-        setDescription(data.message || "");
         setLat(data.lat || undefined);
         setLng(data.lng || undefined);
         setBannerUrl(data.bannerUrl || "");
       })
       .finally(() => setLoading(false));
   }, [token]);
-
-  const handleReformulateIA = async () => {
-    if (!description.trim() && !partner?.name) return;
-    setGeneratingDesc(true);
-    try {
-      const prompt = encodeURIComponent(
-        `Écris une description courte (2-3 phrases max, professionnelle et accrocheuse) pour cette boutique sénégalaise nommée "${partner?.name || "boutique"}" de type "${partner?.type || "commerce"}" basée à ${city || partner?.city || "Dakar"}. ${description ? `Description actuelle : "${description}"` : ""}. Réponds uniquement avec la description reformulée, sans titre ni introduction.`
-      );
-      const res = await fetch(`https://text.pollinations.ai/${prompt}`);
-      const text = await res.text();
-      setDescription(text.trim().slice(0, 300));
-    } catch { /* silencieux */ }
-    finally { setGeneratingDesc(false); }
-  };
 
   const handleSave = async () => {
     setSaving(true); setError(""); setSaved(false);
@@ -71,7 +54,6 @@ export default function PartnerProfilPage() {
           city: city || undefined,
           profileImageUrl: photoUrl || undefined,
           address: address || undefined,
-          message: description || undefined,
           lat: lat || undefined,
           lng: lng || undefined,
           bannerUrl: bannerUrl || undefined,
@@ -190,52 +172,6 @@ export default function PartnerProfilPage() {
           aspect="banner"
           hint="Taille recommandée : 1200 × 300px · Visible en haut de votre page boutique"
         />
-      </section>
-
-      {/* Description boutique */}
-      <section style={card}>
-        <h2 style={sTitle}>Description de la boutique</h2>
-        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.6 }}>
-          Décrivez votre boutique en quelques phrases. Cette description apparaît sur votre page publique.
-        </p>
-
-        {/* Textarea + bouton IA */}
-        <div style={{ position: "relative" }}>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 300))}
-            placeholder={`Ex : Bienvenue chez ${partner?.name || "notre boutique"} ! Nous proposons des produits de qualité à ${city || "Dakar"}…`}
-            rows={4}
-            style={{ ...inp, resize: "vertical", height: 100 }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: description.length > 250 ? "#f59e0b" : "#aaa" }}>
-              {description.length}/300 caractères
-            </span>
-            <button
-              onClick={handleReformulateIA}
-              disabled={generatingDesc}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "6px 14px", borderRadius: 99,
-                border: "1px solid #e0f2fe", background: "#f0f9ff",
-                color: "#0369a1", fontSize: 12, fontWeight: 600,
-                cursor: generatingDesc ? "not-allowed" : "pointer",
-                opacity: generatingDesc ? 0.7 : 1,
-              }}
-            >
-              {generatingDesc ? "⏳ Génération…" : "✨ Reformuler avec l'IA"}
-            </button>
-          </div>
-        </div>
-
-        {/* Aperçu */}
-        {description && (
-          <div style={{ marginTop: 12, padding: "10px 14px", background: "#f7f4f2", borderRadius: 10, borderLeft: "3px solid #E8380D" }}>
-            <p style={{ fontSize: 11, color: "#aaa", marginBottom: 4, fontWeight: 600 }}>APERÇU SUR VOTRE PAGE</p>
-            <p style={{ fontSize: 13, color: "#555", lineHeight: 1.6, fontStyle: "italic" }}>"{description}"</p>
-          </div>
-        )}
       </section>
 
       {/* Lien boutique */}

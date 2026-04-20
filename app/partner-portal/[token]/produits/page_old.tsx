@@ -86,10 +86,11 @@ export default function PartnerProductsPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [generatingDesc, setGeneratingDesc] = useState(false);
   const [generatingImg, setGeneratingImg] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
 
   // Catégories dynamiques selon le type du partenaire
   const MEAL_CATEGORIES = CATEGORIES_BY_TYPE[partner?.type] ?? CATEGORIES_BY_TYPE["Restaurant"];
@@ -113,7 +114,7 @@ export default function PartnerProductsPage() {
   const resetForm = () => {
     setName(""); setPrice("");
     setCategory(CATEGORIES_BY_TYPE[partner?.type]?.[0]?.id ?? "plat");
-    setDescription(""); setImageUrls([]);
+    setDescription(""); setImageUrl(""); setImagePreview("");
     setEditing(null); setMode(null);
   };
 
@@ -123,7 +124,8 @@ export default function PartnerProductsPage() {
     setPrice(String(product.price));
     setCategory(product.category || MEAL_CATEGORIES[0]?.id || "plat");
     setDescription(product.description || "");
-    setImageUrls(product.imageUrls?.length ? product.imageUrls : (product.imageUrl ? [product.imageUrl] : []));
+    setImageUrl(product.imageUrl || "");
+    setImagePreview(product.imageUrl || "");
     setMode("edit");
   };
 
@@ -141,11 +143,11 @@ export default function PartnerProductsPage() {
   };
 
   const handleGenerateImage = () => {
-    if (imageUrls.length >= 3) return;
     if (!name.trim()) return;
     setGeneratingImg(true);
     const url = generateImageUrl(name);
-    setImageUrls((prev) => prev.length < 3 ? [...prev, url] : prev);
+    setImageUrl(url);
+    setImagePreview(url);
     setGeneratingImg(false);
   };
 
@@ -158,8 +160,7 @@ export default function PartnerProductsPage() {
         price: Number(price),
         category,
         description: description || undefined,
-        imageUrl: imageUrls[0] || generateImageUrl(name),
-        imageUrls: imageUrls.length ? imageUrls : [generateImageUrl(name)],
+        imageUrl: imageUrl || generateImageUrl(name),
         token,
       };
 
@@ -280,18 +281,13 @@ export default function PartnerProductsPage() {
                 {/* Image */}
                 <div style={{ height: 150, overflow: "hidden", position: "relative", background: "#fafaf8" }}>
                   <img
-                    src={(product.imageUrls?.[0] || product.imageUrl) || generateImageUrl(product.name)}
+                    src={product.imageUrl || generateImageUrl(product.name)}
                     alt={product.name}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = `https://image.pollinations.ai/prompt/${encodeURIComponent(product.name + ", food photography")}?width=400&height=300&nologo=true`;
                     }}
                   />
-                  {product.imageUrls?.length > 1 && (
-                    <div style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.6)", borderRadius: 99, padding: "2px 7px", fontSize: 10, color: "#fff", fontWeight: 700 }}>
-                      1/{product.imageUrls.length}
-                    </div>
-                  )}
                   {/* Category badge */}
                   <span style={{
                     position: "absolute", top: 8, left: 8,
@@ -431,74 +427,44 @@ export default function PartnerProductsPage() {
                 />
               </div>
 
-              {/* Photos — jusqu'à 3 */}
+              {/* Image — upload Cloudinary ou génération IA */}
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <label style={{ ...lbl, marginBottom: 0 }}>
-                    Photos du produit
-                    <span style={{ fontWeight: 400, color: "#aaa", fontSize: 11, marginLeft: 6 }}>
-                      {imageUrls.length}/3 photo{imageUrls.length > 1 ? "s" : ""}
-                    </span>
-                  </label>
-                  {imageUrls.length < 3 && name.trim() && (
-                    <button
-                      onClick={handleGenerateImage}
-                      disabled={generatingImg}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        padding: "4px 10px", borderRadius: 99,
-                        border: "1px solid #fce7f3", background: "#fdf4ff",
-                        color: "#be185d", fontSize: 11, fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {generatingImg ? "⏳…" : "🎨 Générer IA"}
-                    </button>
-                  )}
+                  <label style={{ ...lbl, marginBottom: 0 }}>Image du produit</label>
+                  <button
+                    onClick={handleGenerateImage}
+                    disabled={!name.trim() || generatingImg || !!imageUrl}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      padding: "4px 10px", borderRadius: 99,
+                      border: "1px solid #fce7f3", background: "#fdf4ff",
+                      color: "#be185d", fontSize: 11, fontWeight: 600,
+                      cursor: name.trim() && !imageUrl ? "pointer" : "not-allowed",
+                      opacity: name.trim() && !imageUrl ? 1 : 0.4,
+                    }}
+                  >
+                    {generatingImg ? "⏳…" : "🎨 IA"}
+                  </button>
                 </div>
 
-                {/* Aperçu des photos existantes */}
-                {imageUrls.length > 0 && (
-                  <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-                    {imageUrls.map((url, idx) => (
-                      <div key={idx} style={{ position: "relative", width: 80, height: 80, borderRadius: 8, overflow: "hidden", border: "1px solid #f0ebe8" }}>
-                        <img src={url} alt={`Photo ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        {idx === 0 && (
-                          <div style={{ position: "absolute", top: 2, left: 2, background: "#E8380D", borderRadius: 4, padding: "1px 5px", fontSize: 9, color: "#fff", fontWeight: 700 }}>
-                            PRINCIPALE
-                          </div>
-                        )}
-                        <button
-                          onClick={() => setImageUrls((prev) => prev.filter((_, i) => i !== idx))}
-                          style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", background: "rgba(0,0,0,0.6)", border: "none", color: "#fff", fontSize: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Upload Cloudinary en priorité */}
+                <CloudinaryUploader
+                  value={imageUrl ? [imageUrl] : []}
+                  onChange={(urls) => { setImageUrl(urls[0] ?? ""); setImagePreview(urls[0] ?? ""); }}
+                  token={token}
+                  folder="products"
+                  max={1}
+                  label=""
+                  aspect="free"
+                  hint="💡 Si vide, cliquez 🎨 IA pour générer automatiquement"
+                />
 
-                {/* Upload Cloudinary */}
-                {imageUrls.length < 3 && (
-                  <CloudinaryUploader
-                    value={[]}
-                    onChange={(urls) => {
-                      setImageUrls((prev) => {
-                        const combined = [...prev, ...urls];
-                        return combined.slice(0, 3);
-                      });
-                    }}
-                    token={token}
-                    folder="products"
-                    max={3 - imageUrls.length}
-                    label=""
-                    aspect="free"
-                    hint={imageUrls.length === 0 ? "💡 Ajoutez jusqu'à 3 photos ou utilisez 🎨 IA" : `💡 Vous pouvez ajouter ${3 - imageUrls.length} photo${3 - imageUrls.length > 1 ? "s" : ""} supplémentaire${3 - imageUrls.length > 1 ? "s" : ""}`}
-                  />
-                )}
-                {imageUrls.length >= 3 && (
-                  <p style={{ fontSize: 11, color: "#10b981", marginTop: 4, fontWeight: 600 }}>✓ 3 photos ajoutées — maximum atteint</p>
+                {/* Aperçu image IA si pas d'upload */}
+                {!imageUrl && imagePreview && (
+                  <div style={{ marginTop: 8, borderRadius: 10, overflow: "hidden", height: 120, background: "#fafaf8" }}>
+                    <img src={imagePreview} alt="Aperçu IA" style={{ width: "100%", height: "100%", objectFit: "cover" }} onLoad={() => setGeneratingImg(false)} />
+                    <p style={{ fontSize: 10, color: "#aaa", textAlign: "center", marginTop: 4 }}>Image générée par IA — non stockée sur Cloudinary</p>
+                  </div>
                 )}
               </div>
 
