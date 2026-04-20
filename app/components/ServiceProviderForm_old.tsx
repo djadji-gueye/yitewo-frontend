@@ -37,7 +37,6 @@ export default function ServiceProviderForm() {
   const [city, setCity] = useState("");
   const [zone, setZone] = useState("");
   const [contact, setContact] = useState("");
-  const [email, setEmail] = useState("");
   const [experience, setExperience] = useState("");
   const [availability, setAvailability] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -165,7 +164,7 @@ export default function ServiceProviderForm() {
   const toggleAvailability = (opt: string) =>
     setAvailability((prev) => prev.includes(opt) ? prev.filter((a) => a !== opt) : [...prev, opt]);
 
-  const canSend = name && city && contact && email && selectedCategories.length > 0 && profileImageUrl && workImageUrl;
+  const canSend = name && city && contact && selectedCategories.length > 0 && profileImageUrl && workImageUrl;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,7 +173,7 @@ export default function ServiceProviderForm() {
     try {
       await createPartner({
         type: "Prestataire",
-        name, city, email: email || undefined,
+        name, city,
         zone: zone || undefined,
         contact,
         message: [
@@ -202,7 +201,7 @@ export default function ServiceProviderForm() {
       <div style={{ fontSize: 52, marginBottom: 14 }}>🎉</div>
       <h3 style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Candidature enregistrée !</h3>
       <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7 }}>
-        Bienvenue dans le réseau Yitewo. Notre équipe va examiner votre dossier et vous contacter sous 48h au <strong>{contact}</strong>. Un email de confirmation a été envoyé à <strong>{email}</strong>.
+        Bienvenue dans le réseau Yitewo. Notre équipe va examiner votre dossier et vous contacter sous 48h au <strong>{contact}</strong>.
       </p>
     </div>
   );

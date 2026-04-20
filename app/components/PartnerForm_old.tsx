@@ -45,7 +45,6 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
   const [city, setCity] = useState("");
   const [zone, setZone] = useState("");
   const [contact, setContact] = useState("");
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>("form");
@@ -126,8 +125,7 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
     try {
       await createPartner({
         type, name, city, zone: zone || undefined,
-        contact, email: email || undefined,
-        message: message || undefined,
+        contact, message: message || undefined,
         profileImageUrl: logoUrl || undefined,
         address: geoAddress || undefined,
         lat: geoLat, lng: geoLng,
@@ -141,7 +139,7 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
 
   // ── Étape 1 valide si nom + localisation ─────────────────
   const step1Valid = name.trim().length > 0 && geoSelected;
-  const step2Valid = contact.trim().length >= 8 && /^[^@]+@[^@]+\.[^@]+$/.test(email);
+  const step2Valid = contact.trim().length >= 8;
 
   // ── Succès ────────────────────────────────────────────────
   if (status === "success") return (
@@ -333,30 +331,6 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
             <p style={{ fontSize: 11, color: "#aaa", marginTop: 5 }}>
               Ce numéro sera utilisé pour vous contacter et affiché aux clients.
             </p>
-
-            {/* Email */}
-            <div style={{ marginTop: 16 }}>
-              <label style={lbl}>
-                Adresse email *
-                <span style={{ fontSize: 10, fontWeight: 400, color: "#aaa", marginLeft: 6 }}>
-                  Pour les notifications commandes et infos Yitewo
-                </span>
-              </label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                required
-                placeholder="votre@email.com"
-                style={{ ...inp, borderColor: /^[^@]+@[^@]+\.[^@]+$/.test(email) ? "#10b981" : undefined }}
-              />
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginTop: 6, padding: "8px 10px", background: "#f0f9ff", borderRadius: 8 }}>
-                <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>📧</span>
-                <p style={{ fontSize: 11, color: "#0369a1", lineHeight: 1.5 }}>
-                  Votre email est confidentiel. Il sera utilisé uniquement pour vous informer des nouvelles commandes, des messages clients et des actualités Yitewo.
-                </p>
-              </div>
-            </div>
           </div>
 
           <div>
@@ -390,7 +364,6 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
                 ["Boutique", name],
                 ["Localisation", [zone, city].filter(Boolean).join(", ")],
                 ["Contact", contact],
-                ["Email", email],
                 ["Catégories", selectedCats.length > 0 ? `${selectedCats.length} catégorie${selectedCats.length > 1 ? "s" : ""}` : "Aucune"],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f0ebe8" }}>
@@ -402,7 +375,7 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
           </div>
 
           <div style={{ background: "#fff5f3", border: "1px solid #fdd0c5", borderRadius: 10, padding: "12px 14px", fontSize: 12, color: "#b45309", lineHeight: 1.6 }}>
-            ⏱ Votre demande sera examinée par notre équipe sous <strong>24h</strong>. Vous serez contacté au <strong>{contact}</strong> et des notifications seront envoyées à <strong>{email}</strong>.
+            ⏱ Votre demande sera examinée par notre équipe sous <strong>24h</strong>. Vous serez contacté au <strong>{contact}</strong>.
           </div>
 
           {status === "error" && (
@@ -423,7 +396,6 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
         </div>
       )}
     </div>
-    // </div >
   );
 }
 
