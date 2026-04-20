@@ -35,8 +35,10 @@ export default function CartDrawer() {
     }
   };
 
+  const canOrder = location.quarter.length > 0 && name.trim().length > 0 && phone.trim().length >= 8;
+
   const handleOrder = async () => {
-    if (!location.quarter || items.length === 0) return;
+    if (!canOrder || items.length === 0) return;
     setLoading(true);
     try {
       const res: any = await createOrder({
@@ -198,16 +200,16 @@ export default function CartDrawer() {
           <>
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
               <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>
-                Facultatif mais recommandé — pour vous tenir informé de votre commande.
+                Renseignez vos coordonnées pour recevoir la confirmation de commande.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
-                  <label style={labelStyle}>Votre prénom</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex : Moussa" style={inputStyle} />
+                  <label style={labelStyle}>Votre prénom <span style={{ color: "var(--brand)" }}>*</span></label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex : Moussa" style={{ ...inputStyle, borderColor: name.trim() ? "#10b981" : "var(--border)" }} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Téléphone / WhatsApp</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Ex : 77 000 00 00" type="tel" style={inputStyle} />
+                  <label style={labelStyle}>Téléphone / WhatsApp <span style={{ color: "var(--brand)" }}>*</span></label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Ex : 77 000 00 00" type="tel" style={{ ...inputStyle, borderColor: phone.length >= 8 ? "#10b981" : "var(--border)" }} />
                 </div>
                 <div>
                   <label style={labelStyle}>Note pour le livreur (optionnel)</label>
@@ -231,12 +233,17 @@ export default function CartDrawer() {
             </div>
 
             <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)" }}>
-              <button onClick={handleOrder} disabled={loading}
+              {!canOrder && (
+                <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center", marginBottom: 8 }}>
+                  {!name.trim() ? "✍️ Ajoutez votre prénom" : phone.length < 8 ? "📞 Ajoutez votre numéro WhatsApp" : ""}
+                </p>
+              )}
+              <button onClick={handleOrder} disabled={loading || !canOrder}
                 style={{
                   width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                  background: loading ? "#ccc" : "var(--green)",
+                  background: loading || !canOrder ? "#ccc" : "var(--green)",
                   color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 15,
-                  cursor: loading ? "not-allowed" : "pointer",
+                  cursor: loading || !canOrder ? "not-allowed" : "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 }}>
                 {loading ? (
