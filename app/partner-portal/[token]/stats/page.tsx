@@ -23,58 +23,178 @@ function timeAgo(iso: string) {
   return `Il y a ${days} j`;
 }
 
-// ── Mini bar chart SVG natif ──────────────────────────────
-function BarChart({ data, color = "#E8380D", label = "" }: { data: { label: string; value: number }[]; color?: string; label?: string }) {
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const W = 520, H = 120, barW = Math.min(36, (W - 40) / data.length - 6), gap = (W - 40) / data.length;
+// ── Graphes SVG robustes 2026 ────────────────────────────
+
+// Lignes de grille horizontales
+function GridLines({ W, H, steps = 4 }: { W: number; H: number; steps?: number }) {
+  return (
+    <>
+      {Array.from({ length: steps + 1 }, (_, i) => {
+        const y = H - (i / steps) * H;
+        return <line key={i} x1={0} y1={y} x2={W} y2={y} stroke="#f0ebe8" strokeWidth="1" />;
+      })}
+    </>
+  );
+}
+
+// Tooltip hover via title SVG natif (compat tous navigateurs)
+function BarChart({
+  data, color = "#E8380D", label = "", unit = "",
+}: {
+  data: { label: string; value: number }[];
+  color?: string; label?: string; unit?: string;
+}) {
+  if (!data || data.length === 0) return (
+    <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "#aaa", fontSize: 13 }}>
+      Aucune donnée pour cette période
+    </div>
+  );
+
+  const safeData = data.map((d) => ({ ...d, value: isNaN(d.value) ? 0 : d.value }));
+  const max = Math.max(...safeData.map((d) => d.value), 1);
+  const W = 520, H = 110, padL = 32, padB = 22;
+  const innerW = W - padL;
+  const barW = Math.max(6, Math.min(32, innerW / safeData.length - 6));
+  const gap = innerW / safeData.length;
+
+  // Labels Y
+  const ySteps = 4;
+  const yLabels = Array.from({ length: ySteps + 1 }, (_, i) => ({
+    y: H - (i / ySteps) * H,
+    val: Math.round((i / ySteps) * max),
+  }));
 
   return (
     <div>
-      {label && <p style={{ fontSize: 12, color: "#aaa", marginBottom: 8, fontWeight: 600 }}>{label}</p>}
-      <svg width="100%" viewBox={`0 0 ${W} ${H + 24}`} style={{ overflow: "visible" }}>
-        {data.map((d, i) => {
-          const barH = max > 0 ? (d.value / max) * H : 0;
-          const x = 20 + i * gap + gap / 2 - barW / 2;
-          const y = H - barH;
-          return (
+      {label && (
+        <p style={{ fontSize: 12, color: "#888", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          {label}
+        </p>
+      )}
+      <svg width="100%" viewBox={`0 0 ${W} ${H + padB}`} style={{ overflow: "visible", display: "block" }}>
+        {/* Grille */}
+        <g transform={`translate(${padL},0)`}>
+          {yLabels.map((l, i) => (
             <g key={i}>
-              <rect x={x} y={y} width={barW} height={barH} fill={color} rx="4" opacity={barH === 0 ? 0.15 : 0.85} />
-              {d.value > 0 && (
-                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize="10" fill={color} fontWeight="700">{d.value}</text>
-              )}
-              <text x={x + barW / 2} y={H + 16} textAnchor="middle" fontSize="10" fill="#aaa">{d.label}</text>
+              <line x1={0} y1={l.y} x2={innerW} y2={l.y} stroke="#f0ebe8" strokeWidth="1" />
+              <text x={-6} y={l.y + 4} textAnchor="end" fontSize="9" fill="#bbb">{l.val}{unit}</text>
             </g>
-          );
-        })}
+          ))}
+        </g>
+        {/* Barres */}
+        <g transform={`translate(${padL},0)`}>
+          {safeData.map((d, i) => {
+            const barH = max > 0 ? Math.max((d.value / max) * H, d.value > 0 ? 3 : 0) : 0;
+            const x = i * gap + gap / 2 - barW / 2;
+            const y = H - barH;
+            const isWeekend = safeData.length <= 7 && (i === 5 || i === 6);
+            return (
+              <g key={i}>
+                {/* Barre fond */}
+                <rect x={x} y={0} width={barW} height={H} fill={isWeekend ? "#fdf4f2" : "#fafaf8"} rx="3" />
+                {/* Barre valeur */}
+                <rect x={x} y={y} width={barW} height={barH} fill={color} rx="3"
+                  opacity={d.value === 0 ? 0 : 0.88}>
+                  <title>{d.label}: {d.value}{unit}</title>
+                </rect>
+                {/* Valeur au dessus si > 0 */}
+                {d.value > 0 && barH > 14 && (
+                  <text x={x + barW / 2} y={y - 5} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">{d.value}{unit}</text>
+                )}
+                {/* Label bas */}
+                <text x={x + barW / 2} y={H + 14} textAnchor="middle" fontSize="9" fill={isWeekend ? "#E8380D" : "#bbb"} fontWeight={isWeekend ? "700" : "400"}>
+                  {d.label}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        {/* Axe X */}
+        <line x1={padL} y1={H} x2={W} y2={H} stroke="#f0ebe8" strokeWidth="1" />
       </svg>
     </div>
   );
 }
 
-// ── Line chart SVG natif ──────────────────────────────────
-function LineChart({ data, color = "#E8380D", label = "" }: { data: { label: string; value: number }[]; color?: string; label?: string }) {
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const W = 520, H = 100, pad = 20;
-  const pts = data.map((d, i) => ({
-    x: pad + (i / Math.max(data.length - 1, 1)) * (W - pad * 2),
-    y: H - (d.value / max) * (H - 10),
+function LineChart({
+  data, color = "#E8380D", label = "", unit = "",
+}: {
+  data: { label: string; value: number }[];
+  color?: string; label?: string; unit?: string;
+}) {
+  if (!data || data.length === 0) return (
+    <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "#aaa", fontSize: 13 }}>
+      Aucune donnée pour cette période
+    </div>
+  );
+
+  const safeData = data.map((d) => ({ ...d, value: isNaN(d.value) ? 0 : d.value }));
+  const max = Math.max(...safeData.map((d) => d.value), 1);
+  const W = 520, H = 100, padL = 36, padB = 22;
+  const innerW = W - padL;
+
+  const pts = safeData.map((d, i) => ({
+    x: padL + (i / Math.max(safeData.length - 1, 1)) * innerW,
+    y: H - Math.max((d.value / max) * (H - 8), 0),
+    v: d.value,
+    l: d.label,
   }));
-  const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-  const areaD = pts.length > 0 ? `${pathD} L${pts[pts.length - 1].x},${H} L${pts[0].x},${H} Z` : "";
+
+  const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const areaD = pts.length > 1
+    ? `${pathD} L${pts[pts.length - 1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`
+    : "";
+
+  // Labels Y
+  const ySteps = 3;
+  const yLabels = Array.from({ length: ySteps + 1 }, (_, i) => ({
+    y: H - (i / ySteps) * H,
+    val: Math.round((i / ySteps) * max),
+  }));
 
   return (
     <div>
-      {label && <p style={{ fontSize: 12, color: "#aaa", marginBottom: 8, fontWeight: 600 }}>{label}</p>}
-      <svg width="100%" viewBox={`0 0 ${W} ${H + 24}`}>
-        {areaD && <path d={areaD} fill={color} opacity="0.08" />}
-        {pts.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
-        {pts.map((p, i) => (
+      {label && (
+        <p style={{ fontSize: 12, color: "#888", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          {label}
+        </p>
+      )}
+      <svg width="100%" viewBox={`0 0 ${W} ${H + padB}`} style={{ overflow: "visible", display: "block" }}>
+        {/* Labels Y */}
+        {yLabels.map((l, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="4" fill={color} />
-            {data[i].value > 0 && <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize="10" fill={color} fontWeight="700">{data[i].value}</text>}
-            <text x={p.x} y={H + 16} textAnchor="middle" fontSize="10" fill="#aaa">{data[i].label}</text>
+            <line x1={padL} y1={l.y} x2={W} y2={l.y} stroke="#f0ebe8" strokeWidth="1" strokeDasharray={i === 0 ? "0" : "3,3"} />
+            <text x={padL - 6} y={l.y + 4} textAnchor="end" fontSize="9" fill="#bbb">{l.val}{unit}</text>
           </g>
         ))}
+        {/* Zone remplie */}
+        {areaD && (
+          <defs>
+            <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+        )}
+        {areaD && <path d={areaD} fill={`url(#grad-${color.replace("#", "")})`} />}
+        {/* Ligne */}
+        {pts.length > 1 && (
+          <path d={pathD} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        )}
+        {/* Points */}
+        {pts.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="5" fill="#fff" stroke={color} strokeWidth="2">
+              <title>{p.l}: {p.v}{unit}</title>
+            </circle>
+            {p.v > 0 && (
+              <text x={p.x} y={p.y - 9} textAnchor="middle" fontSize="9" fill={color} fontWeight="700">{p.v}{unit}</text>
+            )}
+            <text x={p.x} y={H + 14} textAnchor="middle" fontSize="9" fill="#bbb">{p.l}</text>
+          </g>
+        ))}
+        {/* Axe X */}
+        <line x1={padL} y1={H} x2={W} y2={H} stroke="#e8e0dc" strokeWidth="1.5" />
       </svg>
     </div>
   );
