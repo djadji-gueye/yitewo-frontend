@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import EmailBroadcast from "@/components/EmailBroadcast";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -14,12 +15,12 @@ function authFetch(path: string, options?: RequestInit) {
 }
 
 const STATUS_ORDER: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:    { label: "En attente",  color: "#92400e", bg: "#fef3c7" },
-  CONFIRMED:  { label: "Confirmée",   color: "#1e40af", bg: "#dbeafe" },
-  PREPARING:  { label: "En prépa",    color: "#6d28d9", bg: "#ede9fe" },
-  DELIVERING: { label: "En livraison",color: "#0369a1", bg: "#e0f2fe" },
-  DELIVERED:  { label: "Livrée",      color: "#065f46", bg: "#d1fae5" },
-  CANCELLED:  { label: "Annulée",     color: "#991b1b", bg: "#fee2e2" },
+  PENDING: { label: "En attente", color: "#92400e", bg: "#fef3c7" },
+  CONFIRMED: { label: "Confirmée", color: "#1e40af", bg: "#dbeafe" },
+  PREPARING: { label: "En prépa", color: "#6d28d9", bg: "#ede9fe" },
+  DELIVERING: { label: "En livraison", color: "#0369a1", bg: "#e0f2fe" },
+  DELIVERED: { label: "Livrée", color: "#065f46", bg: "#d1fae5" },
+  CANCELLED: { label: "Annulée", color: "#991b1b", bg: "#fee2e2" },
 };
 
 const NOTIF_ICONS: Record<string, string> = {
@@ -143,15 +144,15 @@ export default function DashboardHome() {
 
       {/* Stats grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14, marginBottom: 32 }}>
-        <StatCard label="Commandes totales"  value={stats?.totalOrders}     icon="🛒" color="#E8380D" href="/dashboard/commandes" />
-        <StatCard label="En attente"          value={stats?.pendingOrders}   icon="⏳" color="#f59e0b" sub={stats?.pendingOrders > 0 ? "À traiter" : undefined} href="/dashboard/commandes" />
-        <StatCard label="Livrées"             value={stats?.deliveredOrders} icon="✅" color="#10b981" href="/dashboard/commandes" />
+        <StatCard label="Commandes totales" value={stats?.totalOrders} icon="🛒" color="#E8380D" href="/dashboard/commandes" />
+        <StatCard label="En attente" value={stats?.pendingOrders} icon="⏳" color="#f59e0b" sub={stats?.pendingOrders > 0 ? "À traiter" : undefined} href="/dashboard/commandes" />
+        <StatCard label="Livrées" value={stats?.deliveredOrders} icon="✅" color="#10b981" href="/dashboard/commandes" />
         <StatCard
           label="Revenus (livrées)"
           value={stats?.totalRevenue != null ? `${stats.totalRevenue.toLocaleString()} F` : null}
           icon="💰" color="#6366f1" href="/dashboard/commandes"
         />
-        <StatCard label="Notifications"       value={stats?.unreadNotifs}    icon="🔔" color="#ec4899" sub={stats?.unreadNotifs > 0 ? "Non lues" : "Tout lu"} href="/dashboard" />
+        <StatCard label="Notifications" value={stats?.unreadNotifs} icon="🔔" color="#ec4899" sub={stats?.unreadNotifs > 0 ? "Non lues" : "Tout lu"} href="/dashboard" />
       </div>
 
       {/* Main content */}
@@ -295,10 +296,10 @@ export default function DashboardHome() {
         </h2>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           {[
-            { label: "Valider des annonces",    href: "/dashboard/opportunites", icon: "📋", color: "#6366f1" },
-            { label: "Gérer les commandes",     href: "/dashboard/commandes",    icon: "🛒", color: "#E8380D" },
-            { label: "Demandes de service",     href: "/dashboard/services",     icon: "🔧", color: "#10b981" },
-            { label: "Nouveaux partenaires",    href: "/dashboard/partenaires",  icon: "🤝", color: "#f59e0b" },
+            { label: "Valider des annonces", href: "/dashboard/opportunites", icon: "📋", color: "#6366f1" },
+            { label: "Gérer les commandes", href: "/dashboard/commandes", icon: "🛒", color: "#E8380D" },
+            { label: "Demandes de service", href: "/dashboard/services", icon: "🔧", color: "#10b981" },
+            { label: "Nouveaux partenaires", href: "/dashboard/partenaires", icon: "🤝", color: "#f59e0b" },
           ].map((a) => (
             <Link key={a.href} href={a.href} style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -320,6 +321,11 @@ export default function DashboardHome() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Communication groupée email */}
+      <div style={{ marginTop: 24 }}>
+        <EmailBroadcast />
       </div>
 
       <style>{`
