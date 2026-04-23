@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from "next";
 
 const BASE = "https://yitewo.com";
@@ -32,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     partnerPages = partners
       .filter((p) => p.slug) // ✅ sécurité
       .map((p) => ({
-        url: `${BASE}/order?partner=${p.slug}`,
+        url: `${BASE}/shop/${p.slug}`,
         lastModified: p.updatedAt
           ? new Date(p.updatedAt)
           : new Date(),

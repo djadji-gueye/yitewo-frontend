@@ -155,7 +155,7 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
     : { backgroundImage: coverPattern, backgroundSize: "cover" };
 
   return (
-    <Link href={`/order?partner=${p.slug}`} style={{ textDecoration: "none" }}>
+    <Link href={`/shop/${p.slug}`} style={{ textDecoration: "none" }}>
       <div className="product-card fade-up" style={{
         background: "#fff", borderRadius: 18, border: "1px solid var(--border)",
         overflow: "hidden", cursor: "pointer", animationDelay: `${index * 0.05}s`,
@@ -338,7 +338,7 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
           <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", gap: 10, alignItems: "center" }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#fcd34d", flexShrink: 0 }}>🔥 PROMOS DU JOUR</span>
             {activePromos.map((p) => (
-              <Link key={p.id} href={`/order?partner=${p.slug}`} style={{
+              <Link key={p.id} href={`/shop/${p.slug}`} style={{
                 flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6,
                 background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)",
                 borderRadius: 99, padding: "4px 12px", textDecoration: "none",
