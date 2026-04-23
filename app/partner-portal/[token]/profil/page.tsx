@@ -243,10 +243,10 @@ export default function PartnerProfilPage() {
         <section style={card}>
           <h2 style={sTitle}>Votre lien de commande</h2>
           <div style={{ background: "#f7f4f2", borderRadius: 10, padding: "11px 14px", fontSize: 13, color: "#6b6b6b", wordBreak: "break-all", lineHeight: 1.5, marginBottom: 10 }}>
-            {typeof window !== "undefined" ? window.location.origin : "https://yitewo.vercel.app"}/order?partner={partner.slug}
+            {typeof window !== "undefined" ? window.location.origin : "https://yitewo.vercel.app"}/shop/{partner.slug}
           </div>
           <button
-            onClick={() => navigator.clipboard?.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/order?partner=${partner.slug}`)}
+            onClick={() => navigator.clipboard?.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/shop/${partner.slug}`)}
             style={{ padding: "8px 18px", borderRadius: 8, border: "1px solid #fdd0c5", background: "#fff5f3", color: "#E8380D", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
           >
             📋 Copier le lien

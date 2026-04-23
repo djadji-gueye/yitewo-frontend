@@ -119,9 +119,9 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
           <div style={{ padding: "16px 20px", borderTop: "1px solid #f0ebe8" }}>
             <p style={{ fontSize: 11, color: "#aaa", marginBottom: 8, fontWeight: 500 }}>VOTRE LIEN DE COMMANDE</p>
             <div style={{ background: "#f7f4f2", borderRadius: 8, padding: "8px 10px", fontSize: 11, color: "#6b6b6b", wordBreak: "break-all", lineHeight: 1.5 }}>
-              {typeof window !== "undefined" ? window.location.origin : "https://yitewo.com"}/order?partner={partner.slug}
+              {typeof window !== "undefined" ? window.location.origin : "https://yitewo.com"}/shop/{partner.slug}
             </div>
-            <button onClick={() => navigator.clipboard?.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/order?partner=${partner.slug}`)}
+            <button onClick={() => navigator.clipboard?.writeText(`${typeof window !== "undefined" ? window.location.origin : ""}/shop/${partner.slug}`)}
               style={{ width: "100%", marginTop: 8, padding: "7px", borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", color: "#E8380D", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
               📋 Copier le lien
             </button>
@@ -146,7 +146,7 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
               Espace partenaire<span style={{ color: "#1a1a1a", fontWeight: 600 }}> · {partner.name}</span>
             </p>
 
-            <a href={`/order?partner=${partner.slug}`} target="_blank" rel="noopener noreferrer"
+            <a href={`/shop/${partner.slug}`} target="_blank" rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, background: "#fff5f3", border: "1px solid #fdd0c5", color: "#E8380D", textDecoration: "none", fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />

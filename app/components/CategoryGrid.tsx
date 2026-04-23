@@ -3,12 +3,12 @@
 import Link from "next/link";
 
 const CATEGORIES = [
-  { icon: "🥩", label: "Viande & Poisson", href: "/order?cat=viande" },
-  { icon: "🥦", label: "Légumes frais", href: "/order?cat=legumes" },
-  { icon: "🧃", label: "Boissons", href: "/order?cat=boissons" },
-  { icon: "🌾", label: "Épicerie", href: "/order?cat=epicerie" },
-  { icon: "🧼", label: "Hygiène", href: "/order?cat=hygiene" },
-  { icon: "🍞", label: "Boulangerie", href: "/order?cat=boulangerie" },
+  { icon: "🥩", label: "Viande & Poisson", href: "/shop?cat=viande" },
+  { icon: "🥦", label: "Légumes frais", href: "/shop?cat=legumes" },
+  { icon: "🧃", label: "Boissons", href: "/shop?cat=boissons" },
+  { icon: "🌾", label: "Épicerie", href: "/shop?cat=epicerie" },
+  { icon: "🧼", label: "Hygiène", href: "/shop?cat=hygiene" },
+  { icon: "🍞", label: "Boulangerie", href: "/shop?cat=boulangerie" },
 ];
 
 export default function CategoryGrid() {

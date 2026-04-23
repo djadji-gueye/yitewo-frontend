@@ -443,7 +443,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
                 </div>
               )}
 
-              <Link href={`/order?partner=${selected.slug}`} style={{
+              <Link href={`/shop/${selected.slug}`} style={{
                 display: "block", padding: "12px", borderRadius: 12,
                 background: "var(--brand)", color: "#fff", textAlign: "center",
                 textDecoration: "none", fontFamily: "Syne, sans-serif",
@@ -622,7 +622,7 @@ function PartnerCard({ p, selected, onClick }: { p: Partner; selected: boolean; 
         </div>
         {p.promo && <span style={{ fontSize: 10, background: "#fff5f3", color: "#E8380D", border: "1px solid #fdd0c5", borderRadius: 99, padding: "2px 7px", fontWeight: 700, flexShrink: 0 }}>🔥 Promo</span>}
       </div>
-      <Link href={`/order?partner=${p.slug}`} onClick={(e) => e.stopPropagation()} style={{
+      <Link href={`/shop/${p.slug}`} onClick={(e) => e.stopPropagation()} style={{
         display: "block", marginTop: 12, padding: "8px", borderRadius: 8,
         background: "var(--brand-light)", color: "var(--brand)", textAlign: "center",
         textDecoration: "none", fontSize: 12, fontWeight: 700,

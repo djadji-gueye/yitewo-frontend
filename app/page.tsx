@@ -21,7 +21,7 @@ const OFFERS = [
     icon: "🍽️", label: "Restaurants & Snacks",
     desc: "Thiéboudienne, yassa, maffé… Commandez vos plats préférés auprès des restaurants de votre ville.",
     features: ["Menus détaillés", "Commande en ligne", "Plats locaux authentiques"],
-    href: "/order", grad: "linear-gradient(135deg,#78350f,#b45309)",
+    href: "/shop", grad: "linear-gradient(135deg,#78350f,#b45309)",
     color: "#b45309", bg: "#fef3c7",
   },
   {
