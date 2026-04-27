@@ -7,6 +7,7 @@ const LINKS = [
   { label: "Services", href: "/services" },
   { label: "Opportunités", href: "/opportunities" },
   { label: "Devenir partenaire", href: "/partners" },
+  { label: "Tarifs", href: "/pricing" },
   { label: "Contact", href: "/contact" },
   { label: "FAQ", href: "/faq" },
   { label: "CGU", href: "/cgu" },

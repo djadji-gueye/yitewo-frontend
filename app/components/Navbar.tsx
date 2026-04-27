@@ -18,6 +18,7 @@ export default function Navbar() {
     { name: "Services", href: "/services" },
     { name: "Opportunités", href: "/opportunities" },
     { name: "Partenaires", href: "/partners" },
+    { name: "Tarifs", href: "/pricing" },
   ];
 
   return (

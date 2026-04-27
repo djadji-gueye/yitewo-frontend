@@ -33,6 +33,7 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
     { href: `/partner-portal/${token}/commandes`, icon: "🛒", label: "Mes commandes" },
     { href: `/partner-portal/${token}/promo`, icon: "🔥", label: "Promo Flash" },
     { href: `/partner-portal/${token}/stats`, icon: "⭐", label: "Réputation" },
+    { href: `/partner-portal/${token}/abonnement`, icon: "💳", label: "Mon abonnement" },
     { href: `/partner-portal/${token}/profil`, icon: "⚙️", label: "Mon profil" },
   ];
 
