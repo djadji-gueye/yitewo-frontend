@@ -58,6 +58,9 @@ export default function PartnerPortalHome() {
   const [partner, setPartner] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  // Plan actuel du partenaire (simulé — à terme depuis la DB)
+  const currentPlan = partner?.plan || "free"; // "free" | "pro" | "business"
+  const WAVE_NUMBER = "221777259330"; // Numéro Wave Yitewo pour paiement
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
 
@@ -164,6 +167,97 @@ export default function PartnerPortalHome() {
           )}
         </Link>
       </div>
+
+      {/* ═══ ENCART UPGRADE PLAN ═══ */}
+      {currentPlan === "free" && (
+        <div style={{
+          background: "linear-gradient(135deg, #fff8f6 0%, #fff3f0 100%)",
+          border: "1.5px solid #E8380D30",
+          borderRadius: 18, padding: "22px 24px", marginBottom: 28,
+          position: "relative", overflow: "hidden",
+        }}>
+          {/* Déco */}
+          <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(232,56,13,0.06)" }} />
+          <div style={{ position: "absolute", bottom: -20, right: 60, width: 80, height: 80, borderRadius: "50%", background: "rgba(232,56,13,0.04)" }} />
+
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 20 }}>🚀</span>
+                <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 15, color: "#1a1a1a" }}>
+                  Vous êtes sur le plan Gratuit
+                </span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "#f0ebe8", color: "#888" }}>
+                  GRATUIT
+                </span>
+              </div>
+
+              {/* Ce qui est bloqué */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px", marginBottom: 14 }}>
+                {[
+                  { text: "Apparaître en 1ère page", locked: true },
+                  { text: "Statistiques détaillées", locked: true },
+                  { text: "Badge Pro Vérifié", locked: true },
+                  { text: "Agent WhatsApp IA", locked: true },
+                  { text: "Produits illimités", locked: true },
+                  { text: "Rapport mensuel", locked: true },
+                ].map((item) => (
+                  <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#888" }}>
+                    <span style={{ color: item.locked ? "#ddd" : "#10b981", flexShrink: 0 }}>
+                      {item.locked ? "🔒" : "✓"}
+                    </span>
+                    {item.text}
+                  </div>
+                ))}
+              </div>
+
+              {/* Urgence */}
+              <p style={{ fontSize: 12, color: "#E8380D", fontWeight: 600 }}>
+                📍 Vous êtes actuellement en position basse dans les résultats de recherche.
+              </p>
+            </div>
+
+            {/* CTA */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, alignItems: "center" }}>
+              {/* Pro */}
+              <div style={{ background: "#fff", border: "1.5px solid #E8380D", borderRadius: 14, padding: "16px 20px", textAlign: "center", minWidth: 180 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#E8380D", letterSpacing: "0.05em", marginBottom: 4 }}>YITEWO PRO</p>
+                <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 22, color: "#1a1a1a", marginBottom: 2 }}>
+                  4 900 <span style={{ fontSize: 13, fontWeight: 600 }}>FCFA/mois</span>
+                </p>
+                <p style={{ fontSize: 10, color: "#aaa", marginBottom: 12 }}>≈ moins d'un bouquet Canal+</p>
+                <a
+                  href={`https://wa.me/${WAVE_NUMBER}?text=${encodeURIComponent(`Bonjour ! Je souhaite passer au plan Yitewo Pro (4 900 FCFA/mois) pour ma boutique : ${partner?.name || ""}. Je vais envoyer le paiement via Wave.`)}`}
+                  target="_blank" rel="noreferrer"
+                  style={{ display: "block", padding: "9px 16px", borderRadius: 10, background: "#E8380D", color: "#fff", textDecoration: "none", fontFamily: "Syne", fontWeight: 700, fontSize: 13 }}
+                >
+                  Payer via Wave →
+                </a>
+              </div>
+
+              <a href="/pricing" style={{ fontSize: 11, color: "#aaa", textDecoration: "underline" }}>
+                Voir tous les plans
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Badge plan actif si Pro ou Business */}
+      {currentPlan !== "free" && (
+        <div style={{ background: currentPlan === "business" ? "linear-gradient(135deg, #1A9E5F15, #1A9E5F08)" : "linear-gradient(135deg, #E8380D10, #E8380D05)", border: `1px solid ${currentPlan === "business" ? "#1A9E5F30" : "#E8380D20"}`, borderRadius: 12, padding: "12px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 18 }}>{currentPlan === "business" ? "⭐" : "🚀"}</span>
+          <div>
+            <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 13, color: "#1a1a1a" }}>
+              Plan {currentPlan === "business" ? "Business" : "Pro"} actif
+            </p>
+            <p style={{ fontSize: 11, color: "#aaa" }}>Toutes vos fonctionnalités premium sont disponibles</p>
+          </div>
+          <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: currentPlan === "business" ? "#1A9E5F22" : "#E8380D15", color: currentPlan === "business" ? "#1A9E5F" : "#E8380D" }}>
+            {currentPlan.toUpperCase()} ✓
+          </span>
+        </div>
+      )}
 
       {/* Recent orders */}
       <div style={{
