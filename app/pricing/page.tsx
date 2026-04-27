@@ -293,7 +293,7 @@ export default function PricingPage() {
             <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
               <div style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 14, padding: "20px 28px", textAlign: "center" }}>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>Numéro Wave / OM Yitewo</p>
-                <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 22 }}>+221 77 725 93 30</p>
+                <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 22 }}>+221 77 069 80 80</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>Activation sous 24h garantie</p>
               </div>
               <a
@@ -316,7 +316,7 @@ export default function PricingPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {[
               { q: "Est-ce vraiment gratuit pour commencer ?", r: "Oui, 100%. Vous créez votre profil, listez jusqu'à 5 produits ou services et recevez des contacts clients sans débourser un franc. Aucune carte bancaire requise." },
-              { q: "Comment se passe l'activation après paiement ?", r: "Vous envoyez le montant via Wave ou Orange Money au +221 77 725 93 30, puis vous nous envoyez un message WhatsApp avec votre nom et votre plan. Notre équipe active votre compte sous 24 heures et vous envoie une confirmation." },
+              { q: "Comment se passe l'activation après paiement ?", r: "Vous envoyez le montant via Wave ou Orange Money au +221 77 069 80 80, puis vous nous envoyez un message WhatsApp avec votre nom et votre plan. Notre équipe active votre compte sous 24 heures et vous envoie une confirmation." },
               { q: "Puis-je passer du Gratuit au Pro à tout moment ?", r: "Oui, à n'importe quel moment. Envoyez un message à notre équipe WhatsApp, effectuez le paiement du premier mois et votre plan est upgradé sous 24 heures." },
               { q: "Que se passe-t-il si je ne renouvelle pas ?", r: "Votre profil reste visible gratuitement sur Yitewo, mais vous repassez automatiquement au plan Essentiel — sans mise en avant premium ni fonctionnalités avancées." },
               { q: "Proposez-vous des réductions pour les associations ou ONG ?", r: "Oui. Contactez-nous directement sur WhatsApp avec votre situation — nous étudions chaque demande au cas par cas." },
