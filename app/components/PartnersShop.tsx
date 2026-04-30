@@ -12,6 +12,7 @@ interface Partner {
   type: string;
   city: string;
   zone?: string;
+  plan: string;
   profileImageUrl?: string;
   bannerUrl?: string;
   categories?: { name: string }[];
@@ -186,7 +187,7 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
           {p.bannerUrl && (
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)", borderRadius: "inherit", pointerEvents: "none" }} />
           )}
-          {/* Badge */}
+          {/* Badge promo */}
           {badgeMeta && (
             <div style={{
               position: "absolute", top: promoActive ? 32 : 8, right: 8,
@@ -195,6 +196,17 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
               border: `1px solid ${badgeMeta.color}33`,
             }}>
               {badgeMeta.icon} {badgeMeta.label}
+            </div>
+          )}
+          {/* Badge plan Pro/Business */}
+          {p.plan === "business" && (
+            <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(26,158,95,0.9)", color: "#fff", fontSize: 9, fontWeight: 800, padding: "3px 8px", borderRadius: 99, backdropFilter: "blur(4px)" }}>
+              ⭐ Business
+            </div>
+          )}
+          {p.plan === "pro" && !p.plan?.includes("business") && (
+            <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(232,56,13,0.85)", color: "#fff", fontSize: 9, fontWeight: 800, padding: "3px 8px", borderRadius: 99, backdropFilter: "blur(4px)" }}>
+              ✓ Pro
             </div>
           )}
           {/* Avatar */}

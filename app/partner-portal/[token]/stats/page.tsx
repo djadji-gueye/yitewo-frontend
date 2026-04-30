@@ -1,5 +1,6 @@
 "use client";
 
+import { usePlan } from "@/hooks/usePlan";
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 
@@ -286,6 +287,36 @@ export default function PartnerStatsPage() {
   if (loading) return <div style={{ padding: 60, textAlign: "center", color: "#aaa" }}>Chargement…</div>;
 
   const badge = stats?.badge ? BADGE_META[stats.badge] : null;
+
+
+  // Protection plan
+  const planInfo = usePlan(partner?.plan || "free");
+  if (!loading && !planInfo.canSeeStats) {
+    return (
+      <div style={{ padding: 28, maxWidth: 520, margin: "0 auto" }}>
+        <div style={{ background: "#fff", border: "1px solid #f0ebe8", borderRadius: 20, padding: "40px 32px", textAlign: "center" }}>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>📈</div>
+          <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 20, color: "#1a1a1a", marginBottom: 10 }}>Statistiques de visites</h2>
+          <p style={{ color: "#888", fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+            Les statistiques détaillées sont disponibles à partir du plan Pro (4 900 FCFA/mois).
+          </p>
+          <div style={{ filter: "blur(5px)", opacity: 0.35, pointerEvents: "none", marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {["1 234 vues", "89 clics", "7.2% taux", "Mermoz"].map((v) => (
+                <div key={v} style={{ background: "#f5f5f5", borderRadius: 10, padding: 14 }}>
+                  <p style={{ fontSize: 20, fontWeight: 800 }}>{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <a href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", borderRadius: 99, background: "#E8380D", color: "#fff", textDecoration: "none", fontFamily: "Syne", fontWeight: 700, fontSize: 14 }}>
+            🚀 Passer au Pro — 4 900 FCFA/mois
+          </a>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div style={{ fontFamily: "DM Sans, sans-serif" }}>
