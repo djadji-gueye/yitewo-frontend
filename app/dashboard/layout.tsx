@@ -5,13 +5,14 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
 const NAV = [
-  { href: "/dashboard",              icon: "⊞",  label: "Vue d'ensemble" },
-  { href: "/dashboard/commandes",    icon: "🛒",  label: "Commandes" },
-  { href: "/dashboard/services",     icon: "🔧",  label: "Services" },
-  { href: "/dashboard/opportunites", icon: "📋",  label: "Opportunités" },
-  { href: "/dashboard/partenaires",  icon: "🤝",  label: "Partenaires" },
-  { href: "/dashboard/produits",     icon: "📦",  label: "Produits" },
-  { href: "/dashboard/parametres",   icon: "⚙️",  label: "Paramètres" },
+  { href: "/dashboard", icon: "⊞", label: "Vue d'ensemble" },
+  { href: "/dashboard/commandes", icon: "🛒", label: "Commandes" },
+  { href: "/dashboard/services", icon: "🔧", label: "Services" },
+  { href: "/dashboard/opportunites", icon: "📋", label: "Opportunités" },
+  { href: "/dashboard/partenaires", icon: "🤝", label: "Partenaires" },
+  { href: "/dashboard/abonnements", icon: "💳", label: "Abonnements" },
+  { href: "/dashboard/produits", icon: "📦", label: "Produits" },
+  { href: "/dashboard/parametres", icon: "⚙️", label: "Paramètres" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -80,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       })
         .then((r) => r.json())
         .then((n) => setUnread(typeof n === "number" ? n : 0))
-        .catch(() => {});
+        .catch(() => { });
     };
 
     fetchUnread();
@@ -236,8 +237,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             color: "#666", textDecoration: "none", fontSize: 12, fontWeight: 500,
           }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+              <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
             </svg>
             Site public
           </Link>

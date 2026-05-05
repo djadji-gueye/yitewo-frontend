@@ -1,5 +1,6 @@
 "use client";
 
+import { usePlan } from "@/hooks/usePlan";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import CloudinaryUploader from "@/components/CloudinaryUploader";
@@ -75,6 +76,8 @@ export default function PartnerProductsPage() {
   const token = params?.token as string;
 
   const [products, setProducts] = useState<any[]>([]);
+  const [partnerPlan, setPartnerPlan] = useState<string>("free");
+  const planInfo = usePlan(partnerPlan);
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<FormMode>(null);
@@ -103,6 +106,7 @@ export default function PartnerProductsPage() {
       ]);
       setPartner(p);
       setProducts(Array.isArray(pr) ? pr : pr?.data ?? []);
+      if (p?.plan) setPartnerPlan(p.plan);
     } finally {
       setLoading(false);
     }
@@ -200,6 +204,35 @@ export default function PartnerProductsPage() {
 
   return (
     <div>
+      {/* Banner limite plan */}
+      {planInfo.isFree && (
+        <div style={{
+          background: products.length >= planInfo.maxProducts ? "#fee2e2" : "#fff8f3",
+          border: `1px solid ${products.length >= planInfo.maxProducts ? "#fca5a5" : "#fed7aa"}`,
+          borderRadius: 12, padding: "12px 16px", marginBottom: 18,
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>{products.length >= planInfo.maxProducts ? "🔒" : "📦"}</span>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: products.length >= planInfo.maxProducts ? "#991b1b" : "#92400e" }}>
+                {products.length} / {planInfo.maxProducts} produits — Plan Gratuit
+              </p>
+              <p style={{ fontSize: 11, color: "#aaa" }}>
+                {products.length >= planInfo.maxProducts
+                  ? "Limite atteinte — passez au Pro pour des produits illimités"
+                  : `${planInfo.maxProducts - products.length} produit(s) restant(s) sur votre plan`}
+              </p>
+            </div>
+          </div>
+          {products.length >= planInfo.maxProducts && (
+            <a href="/pricing" target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 700, padding: "7px 14px", borderRadius: 8, background: "#E8380D", color: "#fff", textDecoration: "none" }}>
+              Passer au Pro →
+            </a>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
@@ -210,12 +243,18 @@ export default function PartnerProductsPage() {
             {products.filter((p) => p.isActive).length} actif(s) · {products.length} total
           </p>
         </div>
-        <button onClick={openAdd} style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          padding: "11px 22px", borderRadius: 99, border: "none",
-          background: "#E8380D", color: "#fff",
-          fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer",
-        }}>
+        <button
+          onClick={planInfo.isFree && products.length >= planInfo.maxProducts ? undefined : openAdd}
+          disabled={planInfo.isFree && products.length >= planInfo.maxProducts}
+          title={planInfo.isFree && products.length >= planInfo.maxProducts ? "Limite de 5 produits atteinte — passez au plan Pro" : ""}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "11px 22px", borderRadius: 99, border: "none",
+            background: planInfo.isFree && products.length >= planInfo.maxProducts ? "#ccc" : "#E8380D",
+            color: "#fff",
+            fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14,
+            cursor: planInfo.isFree && products.length >= planInfo.maxProducts ? "not-allowed" : "pointer",
+          }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
           </svg>

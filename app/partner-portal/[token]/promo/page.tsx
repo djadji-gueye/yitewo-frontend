@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { usePlan } from "@/hooks/usePlan";
+import Link from "next/link";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -13,11 +15,14 @@ export default function PartnerPromoPage() {
   const [saved, setSaved] = useState(false);
   const [activePromo, setActivePromo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [partner, setPartner] = useState<any>(null);
 
   const [title, setTitle] = useState("");
   const [discount, setDiscount] = useState("");
   const [duration, setDuration] = useState("2");
   const [description, setDescription] = useState("");
+
+  const planInfo = usePlan(partner?.plan || "free");
 
   useEffect(() => {
     if (!token) return;
@@ -28,11 +33,12 @@ export default function PartnerPromoPage() {
         const partnerRes = await fetch(`${BASE}/partners/portal/${token}`);
         if (!partnerRes.ok) throw new Error('Partner fetch failed');
 
-        const partner = await partnerRes.json();
+        const p = await partnerRes.json();
+        setPartner(p);
 
         // 2️⃣ récupérer promo
-        if (partner?.slug) {
-          const promoRes = await fetch(`${BASE}/social/promos/${partner.slug}`);
+        if (p?.slug) {
+          const promoRes = await fetch(`${BASE}/social/promos/${p.slug}`);
 
           if (!promoRes.ok) return; // évite crash
 
@@ -84,6 +90,24 @@ export default function PartnerPromoPage() {
   };
 
   if (loading) return <div style={{ padding: 60, textAlign: "center", color: "#aaa" }}>Chargement…</div>;
+
+  // Gate plan : Pro+ requis
+  if (!planInfo.isPro) return (
+    <div style={{ padding: 28, maxWidth: 520, margin: "0 auto" }}>
+      <div style={{ background: "#fff", border: "1px solid #f0ebe8", borderRadius: 20, padding: "40px 32px", textAlign: "center" }}>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>🔥</div>
+        <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 20, color: "#1a1a1a", marginBottom: 10 }}>
+          Promo Flash
+        </h2>
+        <p style={{ color: "#888", fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+          Les promos flash sont disponibles à partir du plan Pro (4 900 FCFA/mois).
+        </p>
+        <Link href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", borderRadius: 99, background: "#E8380D", color: "#fff", textDecoration: "none", fontFamily: "Syne", fontWeight: 700, fontSize: 14 }}>
+          🚀 Passer au Pro — 4 900 FCFA/mois
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ maxWidth: 560, fontFamily: "DM Sans, sans-serif" }}>
