@@ -198,17 +198,6 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
               {badgeMeta.icon} {badgeMeta.label}
             </div>
           )}
-          {/* Badge plan Pro/Business */}
-          {p.plan === "business" && (
-            <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(26,158,95,0.9)", color: "#fff", fontSize: 9, fontWeight: 800, padding: "3px 8px", borderRadius: 99, backdropFilter: "blur(4px)" }}>
-              ⭐ Business
-            </div>
-          )}
-          {p.plan === "pro" && !p.plan?.includes("business") && (
-            <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(232,56,13,0.85)", color: "#fff", fontSize: 9, fontWeight: 800, padding: "3px 8px", borderRadius: 99, backdropFilter: "blur(4px)" }}>
-              ✓ Pro
-            </div>
-          )}
           {/* Avatar */}
           <div style={{
             position: "absolute", bottom: -24, left: 16,
@@ -236,6 +225,20 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
               {meta.emoji} {meta.label}
             </span>
           </div>
+
+          {/* Badge plan */}
+          {p.plan && p.plan !== "free" && (
+            <div style={{ marginBottom: 6 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99,
+                background: p.plan === "enterprise" ? "#ede9fe" : p.plan === "business" ? "#d1fae5" : "#fee2e2",
+                color: p.plan === "enterprise" ? "#6366f1" : p.plan === "business" ? "#059669" : "#E8380D",
+              }}>
+                {p.plan === "enterprise" ? "🏢 Enterprise" : p.plan === "business" ? "⭐ Business Premium" : "✓ Pro Vérifié"}
+              </span>
+            </div>
+          )}
 
           {/* Rating */}
           {p.avgRating && p.reviewCount && p.reviewCount > 0 ? (
@@ -293,6 +296,7 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
 
   // Promos actives
   const activePromos = partners.filter((p) => p.promo && new Date(p.promo.endsAt) > new Date());
+  const enterprisePartners = partners.filter((p) => p.plan === "enterprise");
 
   const filtered = useMemo(() => {
     let list = partners;
@@ -307,6 +311,12 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
       );
     }
     return [...list].sort((a, b) => {
+      // Plan toujours prioritaire (business > pro > free)
+      const PLAN_ORDER: Record<string, number> = { enterprise: 0, business: 1, pro: 2, free: 3 };
+      const pa = PLAN_ORDER[a.plan] ?? 3;
+      const pb = PLAN_ORDER[b.plan] ?? 3;
+      if (pa !== pb) return pa - pb;
+      // Ensuite critère utilisateur
       if (sortBy === "rating") return (b.avgRating || 0) - (a.avgRating || 0);
       if (sortBy === "followers") return (b.followers || 0) - (a.followers || 0);
       return a.name.localeCompare(b.name);
@@ -343,6 +353,31 @@ export default function PartnersShop({ partners }: { partners: Partner[] }) {
           </div>
         </div>
       </div>
+
+      {/* ── Enterprise spotlight ── */}
+      {enterprisePartners.length > 0 && (
+        <div style={{ background: "linear-gradient(135deg, #1e1b4b, #312e81)", padding: "16px 20px" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#a5b4fc", letterSpacing: "0.1em" }}>🏢 PARTENAIRES ENTERPRISE</span>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {enterprisePartners.map((p) => (
+                <a key={p.id} href={`/shop/${p.slug}`} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(165,180,252,0.3)", borderRadius: 12, padding: "10px 16px", textDecoration: "none", flex: "1 1 200px", maxWidth: 280 }}>
+                  {p.profileImageUrl
+                    ? <img src={p.profileImageUrl} alt={p.name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                    : <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(165,180,252,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🏢</div>
+                  }
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 13, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
+                    <p style={{ fontSize: 10, color: "#a5b4fc", fontWeight: 600 }}>🏢 Enterprise · {p.city}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Promos flash banner */}
       {activePromos.length > 0 && (

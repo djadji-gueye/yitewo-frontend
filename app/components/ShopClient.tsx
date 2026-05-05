@@ -231,6 +231,19 @@ export default function ShopClient({
             </div>
           )}
 
+          {/* Badge plan Pro / Business */}
+          {(partner as any)?.plan && (partner as any).plan !== 'free' && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              background: (partner as any).plan === 'enterprise' ? 'rgba(99,102,241,0.85)' : (partner as any).plan === 'business' ? 'rgba(26,158,95,0.85)' : 'rgba(232,56,13,0.85)',
+              color: '#fff', fontSize: 11, fontWeight: 800,
+              padding: '3px 10px', borderRadius: 99, marginBottom: 10,
+              backdropFilter: 'blur(4px)',
+            }}>
+              {(partner as any).plan === 'enterprise' ? '🏢 Enterprise' : (partner as any).plan === 'business' ? '⭐ Business Premium' : '✓ Pro Vérifié'}
+            </div>
+          )}
+
           {/* Suivre */}
           {partner?.slug && (
             <div>

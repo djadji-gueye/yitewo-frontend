@@ -13,10 +13,11 @@ export default function RapportPage() {
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const planInfo = usePlan(report?.partner?.plan || "free");
+  // Note: planInfo est recalculé à chaque render, donc sera correct une fois report chargé
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${BASE}/partner-portal/${token}/monthly-report`)
+    fetch(`${BASE}/partner-portal/monthly-report?token=${token}`)
       .then(r => r.json())
       .then(setReport)
       .catch(() => setReport({ locked: true }))
@@ -30,7 +31,35 @@ export default function RapportPage() {
     </div>
   );
 
-  // Plan insuffisant
+  // Guard frontend Business+ (double protection avec le backend)
+  if (!loading && !planInfo.isBusiness) return (
+    <div style={{ padding: 28, maxWidth: 560, margin: "0 auto" }}>
+      <div style={{ background: "#fff", border: "1px solid #f0ebe8", borderRadius: 20, padding: "40px 32px", textAlign: "center" }}>
+        <div style={{ fontSize: 52, marginBottom: 16 }}>📊</div>
+        <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 20, color: "#1a1a1a", marginBottom: 10 }}>
+          Rapport mensuel
+        </h2>
+        <p style={{ color: "#888", fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+          Le rapport mensuel complet est disponible à partir du plan Business (14 900 FCFA/mois).
+        </p>
+        <div style={{ filter: "blur(6px)", opacity: 0.4, pointerEvents: "none", marginBottom: 24, userSelect: "none" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[["250 000", "Revenu du mois"], ["34", "Commandes"], ["+18%", "Croissance"], ["14h-15h", "Heure de pointe"]].map(([v, l]) => (
+              <div key={l} style={{ background: "#f5f5f5", borderRadius: 10, padding: "14px" }}>
+                <p style={{ fontSize: 22, fontWeight: 800 }}>{v}</p>
+                <p style={{ fontSize: 11, color: "#888" }}>{l}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <a href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", borderRadius: 99, background: "#1A9E5F", color: "#fff", textDecoration: "none", fontFamily: "Syne", fontWeight: 700, fontSize: 14 }}>
+          ⭐ Passer au Business — 14 900 FCFA/mois
+        </a>
+      </div>
+    </div>
+  );
+
+  // Plan insuffisant (réponse backend)
   if (report?.locked) return (
     <div style={{ padding: 28, maxWidth: 560, margin: "0 auto" }}>
       <div style={{ background: "#fff", border: "1px solid #f0ebe8", borderRadius: 20, padding: "40px 32px", textAlign: "center" }}>
