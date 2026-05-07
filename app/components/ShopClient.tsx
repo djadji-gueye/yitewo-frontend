@@ -16,6 +16,7 @@ interface Product {
   description?: string;
   category?: { id?: number | string; name: string };
   isPartnerProduct?: boolean;
+  isDailySpecial?: boolean;
 }
 
 interface Partner {
@@ -90,6 +91,7 @@ export default function ShopClient({
             description: p.description || "",
             category: { id: p.category, name: p.category || "Plats" },
             isPartnerProduct: true,
+            isDailySpecial: p.isDailySpecial ?? false,
           }));
           setProducts(list);
           const first = list?.[0]?.category?.name;
@@ -159,14 +161,14 @@ export default function ShopClient({
       <div style={{
         position: "relative",
         overflow: "hidden",
-        minHeight: 160,
+        height: 220,
       }}>
         {/* Background : vraie bannière ou dégradé */}
         {partner?.bannerUrl ? (
           <img
             src={partner.bannerUrl}
             alt="bannière"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%" }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
         ) : (
@@ -326,6 +328,84 @@ export default function ShopClient({
           </button>
         </div>
 
+        {/* ── Section Plats du jour ── */}
+        {products.some((p) => p.isDailySpecial) && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <span style={{ fontSize: 20 }}>🍽️</span>
+              <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 18, color: "var(--text)", margin: 0 }}>
+                Plats du jour
+              </h2>
+              <span style={{ background: "#FFF3E0", color: "#E65100", fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 99 }}>
+                Aujourd'hui
+              </span>
+            </div>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: 16,
+            }}>
+              {products.filter((p) => p.isDailySpecial).map((product) => {
+                const key = String(product.id || product.name);
+                const qty = cartQty(product);
+                const justAdded = addedMap[key];
+                return (
+                  <div key={`daily-${key}`} style={{
+                    background: "#fff",
+                    borderRadius: "var(--radius-card)",
+                    overflow: "hidden",
+                    border: "2px solid #FFA726",
+                    boxShadow: "0 4px 16px rgba(255,167,38,0.15)",
+                    display: "flex", flexDirection: "column",
+                  }}>
+                    <div style={{ position: "relative", overflow: "hidden" }} onClick={() => setViewProduct(product)}>
+                      <img
+                        src={(product.imageUrls?.[0]) || product.imageUrl}
+                        alt={product.name}
+                        style={{ width: "100%", height: 180, objectFit: "cover", display: "block", cursor: "pointer" }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300/f0ebe8/aaa?text=Plat"; }}
+                      />
+                      <div style={{
+                        position: "absolute", top: 0, left: 0, right: 0,
+                        background: "linear-gradient(90deg, #FF6D00, #FFA726)",
+                        padding: "5px 12px", fontSize: 11, fontWeight: 800, color: "#fff",
+                        display: "flex", alignItems: "center", gap: 5,
+                      }}>
+                        🌟 Plat du jour
+                      </div>
+                      {qty > 0 && (
+                        <span style={{ position: "absolute", bottom: 8, right: 8, background: "var(--green)", color: "#fff", borderRadius: 99, fontSize: 11, fontWeight: 800, padding: "3px 9px" }}>
+                          {qty} dans le panier
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ padding: "12px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+                      <h3 style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 15, marginBottom: 4, cursor: "pointer" }} onClick={() => setViewProduct(product)}>
+                        {product.name}
+                      </h3>
+                      {product.description && (
+                        <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.5, marginBottom: 6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>
+                          {product.description}
+                        </p>
+                      )}
+                      <p style={{ color: "#E65100", fontWeight: 800, fontSize: 16, marginBottom: 12, marginTop: "auto", paddingTop: 6 }}>
+                        {product.price.toLocaleString()} <span style={{ fontSize: 12, fontWeight: 500 }}>FCFA</span>
+                      </p>
+                      <button
+                        onClick={() => handleAdd(product)}
+                        style={{ width: "100%", padding: "10px", borderRadius: 99, border: "none", background: justAdded ? "var(--green)" : "#FF6D00", color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 14, cursor: "pointer", transition: "background 0.3s" }}
+                      >
+                        {justAdded ? "✓ Ajouté" : "+ Commander"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <hr style={{ marginTop: 28, border: "none", borderTop: "1px solid var(--border)" }} />
+          </div>
+        )}
+
         {/* Category pills */}
         <div className="pills-scroll" ref={pillsRef} style={{ marginBottom: 28 }}>
           <button
@@ -397,6 +477,16 @@ export default function ShopClient({
                         }}
                       >
                         {product.category.name}
+                      </span>
+                    )}
+                    {product.isDailySpecial && (
+                      <span style={{
+                        position: "absolute", top: product.category?.name ? 36 : 10, left: 10,
+                        background: "linear-gradient(90deg, #FF6D00, #FFA726)",
+                        color: "#fff", fontSize: 10, fontWeight: 800,
+                        padding: "2px 8px", borderRadius: 99,
+                      }}>
+                        🌟 Plat du jour
                       </span>
                     )}
                     {qty > 0 && (

@@ -28,6 +28,21 @@ export default function PartnerProfilPage() {
   const [lng, setLng] = useState<number | undefined>(undefined);
   const [bannerUrl, setBannerUrl] = useState("");
 
+  // Horaires d'ouverture
+  const DAYS = [
+    { key: "lun", label: "Lundi" },
+    { key: "mar", label: "Mardi" },
+    { key: "mer", label: "Mercredi" },
+    { key: "jeu", label: "Jeudi" },
+    { key: "ven", label: "Vendredi" },
+    { key: "sam", label: "Samedi" },
+    { key: "dim", label: "Dimanche" },
+  ];
+  const defaultHours = () => Object.fromEntries(
+    DAYS.map(d => [d.key, { open: true, from: "08:00", to: "20:00" }])
+  );
+  const [openingHours, setOpeningHours] = useState<Record<string, { open: boolean; from: string; to: string }>>(defaultHours());
+
   useEffect(() => {
     if (!token) return;
     fetch(`${BASE}/partners/portal/${token}`)
@@ -42,6 +57,9 @@ export default function PartnerProfilPage() {
         setLat(data.lat || undefined);
         setLng(data.lng || undefined);
         setBannerUrl(data.bannerUrl || "");
+        if (data.openingHours && typeof data.openingHours === "object") {
+          setOpeningHours(data.openingHours);
+        }
       })
       .finally(() => setLoading(false));
   }, [token]);
@@ -75,6 +93,7 @@ export default function PartnerProfilPage() {
           lat: lat || undefined,
           lng: lng || undefined,
           bannerUrl: bannerUrl || undefined,
+          openingHours,
         }),
       });
       if (!res.ok) throw new Error("Erreur lors de la sauvegarde");
@@ -190,6 +209,119 @@ export default function PartnerProfilPage() {
           aspect="banner"
           hint="Taille recommandée : 1200 × 300px · Visible en haut de votre page boutique"
         />
+      </section>
+
+      {/* Horaires d'ouverture */}
+      <section style={card}>
+        <h2 style={sTitle}>Horaires d'ouverture</h2>
+        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, lineHeight: 1.6 }}>
+          Indiquez vos jours et heures d'ouverture. Ces infos s'affichent sur votre page publique.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {DAYS.map((day) => {
+            const h = openingHours[day.key] ?? { open: true, from: "08:00", to: "20:00" };
+            return (
+              <div key={day.key} style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "10px 14px", borderRadius: 10,
+                background: h.open ? "#fff" : "#f9f9f9",
+                border: `1px solid ${h.open ? "#f0ebe8" : "#ebebeb"}`,
+                transition: "all 0.18s",
+              }}>
+                {/* Toggle open/fermé */}
+                <div
+                  onClick={() => setOpeningHours(prev => ({
+                    ...prev,
+                    [day.key]: { ...h, open: !h.open },
+                  }))}
+                  style={{
+                    width: 40, height: 22, borderRadius: 99, flexShrink: 0,
+                    background: h.open ? "#E8380D" : "#d1d5db",
+                    position: "relative", cursor: "pointer", transition: "background 0.2s",
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: 2, left: h.open ? 20 : 2,
+                    width: 18, height: 18, borderRadius: "50%",
+                    background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                    transition: "left 0.2s",
+                  }} />
+                </div>
+
+                {/* Jour */}
+                <span style={{
+                  fontSize: 13, fontWeight: 600, minWidth: 72,
+                  color: h.open ? "#1a1a1a" : "#aaa",
+                }}>
+                  {day.label}
+                </span>
+
+                {/* Heures ou Fermé */}
+                {h.open ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                    <input
+                      type="time"
+                      value={h.from}
+                      onChange={(e) => setOpeningHours(prev => ({
+                        ...prev,
+                        [day.key]: { ...h, from: e.target.value },
+                      }))}
+                      style={{
+                        ...inp, width: "auto", flex: 1,
+                        padding: "6px 10px", fontSize: 13,
+                      }}
+                    />
+                    <span style={{ fontSize: 12, color: "#aaa", flexShrink: 0 }}>→</span>
+                    <input
+                      type="time"
+                      value={h.to}
+                      onChange={(e) => setOpeningHours(prev => ({
+                        ...prev,
+                        [day.key]: { ...h, to: e.target.value },
+                      }))}
+                      style={{
+                        ...inp, width: "auto", flex: 1,
+                        padding: "6px 10px", fontSize: 13,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, color: "#aaa", fontStyle: "italic" }}>
+                    Fermé
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Raccourcis */}
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <button
+            onClick={() => setOpeningHours(Object.fromEntries(
+              DAYS.map(d => [d.key, { open: true, from: "08:00", to: "20:00" }])
+            ))}
+            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, border: "1px solid #f0ebe8", background: "#fff", color: "#6b6b6b", cursor: "pointer" }}
+          >
+            Tous ouverts
+          </button>
+          <button
+            onClick={() => setOpeningHours(prev => Object.fromEntries(
+              DAYS.map(d => [d.key, { ...prev[d.key], open: d.key !== "dim" }])
+            ))}
+            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, border: "1px solid #f0ebe8", background: "#fff", color: "#6b6b6b", cursor: "pointer" }}
+          >
+            Lun–Sam (dim fermé)
+          </button>
+          <button
+            onClick={() => setOpeningHours(Object.fromEntries(
+              DAYS.map(d => [d.key, { open: false, from: "08:00", to: "20:00" }])
+            ))}
+            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 99, border: "1px solid #fee2e2", background: "#fff", color: "#ef4444", cursor: "pointer" }}
+          >
+            Tout fermer
+          </button>
+        </div>
       </section>
 
       {/* Description boutique */}

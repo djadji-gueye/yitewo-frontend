@@ -93,6 +93,7 @@ export default function PartnerProductsPage() {
   const [saving, setSaving] = useState(false);
   const [generatingDesc, setGeneratingDesc] = useState(false);
   const [generatingImg, setGeneratingImg] = useState(false);
+  const [isDailySpecial, setIsDailySpecial] = useState(false);
 
   // Catégories dynamiques selon le type du partenaire
   const MEAL_CATEGORIES = CATEGORIES_BY_TYPE[partner?.type] ?? CATEGORIES_BY_TYPE["Restaurant"];
@@ -118,6 +119,7 @@ export default function PartnerProductsPage() {
     setName(""); setPrice("");
     setCategory(CATEGORIES_BY_TYPE[partner?.type]?.[0]?.id ?? "plat");
     setDescription(""); setImageUrls([]);
+    setIsDailySpecial(false);
     setEditing(null); setMode(null);
   };
 
@@ -128,6 +130,7 @@ export default function PartnerProductsPage() {
     setCategory(product.category || MEAL_CATEGORIES[0]?.id || "plat");
     setDescription(product.description || "");
     setImageUrls(product.imageUrls?.length ? product.imageUrls : (product.imageUrl ? [product.imageUrl] : []));
+    setIsDailySpecial(product.isDailySpecial ?? false);
     setMode("edit");
   };
 
@@ -164,6 +167,7 @@ export default function PartnerProductsPage() {
         description: description || undefined,
         imageUrl: imageUrls[0] || generateImageUrl(name),
         imageUrls: imageUrls.length ? imageUrls : [generateImageUrl(name)],
+        isDailySpecial,
         token,
       };
 
@@ -339,6 +343,18 @@ export default function PartnerProductsPage() {
                   }}>
                     {cat?.icon} {cat?.label}
                   </span>
+                  {/* Plat du jour badge */}
+                  {product.isDailySpecial && (
+                    <span style={{
+                      position: "absolute", bottom: 8, left: 8,
+                      background: "linear-gradient(135deg, #f59e0b, #E8380D)",
+                      padding: "3px 10px", borderRadius: 99,
+                      fontSize: 10, fontWeight: 800, color: "#fff",
+                      letterSpacing: "0.5px", boxShadow: "0 2px 8px rgba(232,56,13,0.4)",
+                    }}>
+                      ⭐ PLAT DU JOUR
+                    </span>
+                  )}
                   {/* Active toggle */}
                   <button
                     onClick={() => handleToggle(product.id, product.isActive)}
@@ -540,6 +556,44 @@ export default function PartnerProductsPage() {
                   <p style={{ fontSize: 11, color: "#10b981", marginTop: 4, fontWeight: 600 }}>✓ 3 photos ajoutées — maximum atteint</p>
                 )}
               </div>
+
+              {/* Plat du jour toggle */}
+              {(partner?.type === "Restaurant" || !partner?.type) && (
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 16px", borderRadius: 12,
+                  background: isDailySpecial ? "linear-gradient(135deg, #fff8f3, #fff5ee)" : "#f9f9f9",
+                  border: `1px solid ${isDailySpecial ? "#fed7aa" : "#f0ebe8"}`,
+                  cursor: "pointer", transition: "all 0.2s",
+                }}
+                  onClick={() => setIsDailySpecial(!isDailySpecial)}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>⭐</span>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: isDailySpecial ? "#E8380D" : "#1a1a1a", marginBottom: 2 }}>
+                        Plat du jour
+                      </p>
+                      <p style={{ fontSize: 11, color: "#aaa" }}>
+                        Mis en avant sur votre page publique
+                      </p>
+                    </div>
+                  </div>
+                  {/* Toggle switch */}
+                  <div style={{
+                    width: 44, height: 24, borderRadius: 99,
+                    background: isDailySpecial ? "#E8380D" : "#e5e7eb",
+                    position: "relative", transition: "background 0.2s", flexShrink: 0,
+                  }}>
+                    <div style={{
+                      position: "absolute", top: 2, left: isDailySpecial ? 22 : 2,
+                      width: 20, height: 20, borderRadius: "50%",
+                      background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                      transition: "left 0.2s",
+                    }} />
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div style={{ display: "flex", gap: 10, marginTop: 8 }}>

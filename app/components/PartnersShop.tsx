@@ -15,12 +15,37 @@ interface Partner {
   plan: string;
   profileImageUrl?: string;
   bannerUrl?: string;
+  openingHours?: Record<string, { open: boolean; from: string; to: string }> | null;
   categories?: { name: string }[];
   followers?: number;
   avgRating?: number | null;
   reviewCount?: number;
   badge?: string | null;
   promo?: { title: string; discount?: number; endsAt: string } | null;
+}
+
+// ── Calcul ouvert/fermé ────────────────────────────────────
+function getOpenStatus(openingHours?: Record<string, { open: boolean; from: string; to: string }> | null): {
+  isOpen: boolean | null;
+  label: string;
+  color: string;
+  bg: string;
+} {
+  if (!openingHours) return { isOpen: null, label: "", color: "", bg: "" };
+  const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const now = new Date();
+  const dayName = days[now.getDay()];
+  const h = openingHours[dayName];
+  if (!h || !h.open) return { isOpen: false, label: "Fermé", color: "#dc2626", bg: "#fee2e2" };
+  const [fh, fm] = h.from.split(":").map(Number);
+  const [th, tm] = h.to.split(":").map(Number);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const fromMin = fh * 60 + fm;
+  const toMin = th * 60 + tm;
+  const isOpen = nowMin >= fromMin && nowMin < toMin;
+  return isOpen
+    ? { isOpen: true, label: `Ouvert · jusqu'à ${h.to}`, color: "#059669", bg: "#d1fae5" }
+    : { isOpen: false, label: `Fermé · ouvre à ${h.from}`, color: "#dc2626", bg: "#fee2e2" };
 }
 
 const TYPE_META: Record<string, { emoji: string; label: string; color: string; bg: string }> = {
@@ -150,9 +175,10 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
   const badgeMeta = p.badge ? BADGE_META[p.badge] : null;
   const initials = p.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const promoActive = p.promo && new Date(p.promo.endsAt) > new Date();
+  const openStatus = getOpenStatus(p.openingHours);
   // Bannière réelle si disponible, sinon pattern généré
   const coverStyle = p.bannerUrl
-    ? { backgroundImage: `url(${p.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+    ? { backgroundImage: `url(${p.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center top" }
     : { backgroundImage: coverPattern, backgroundSize: "cover" };
 
   return (
@@ -196,6 +222,18 @@ function PartnerCard({ p, index }: { p: Partner; index: number }) {
               border: `1px solid ${badgeMeta.color}33`,
             }}>
               {badgeMeta.icon} {badgeMeta.label}
+            </div>
+          )}
+          {/* Badge ouvert/fermé */}
+          {openStatus.label && (
+            <div style={{
+              position: "absolute", bottom: 30, right: 8,
+              background: openStatus.bg, color: openStatus.color,
+              fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 99,
+              border: `1px solid ${openStatus.color}44`,
+              lineHeight: 1.4,
+            }}>
+              {openStatus.isOpen ? "●" : "○"} {openStatus.label}
             </div>
           )}
           {/* Avatar */}
