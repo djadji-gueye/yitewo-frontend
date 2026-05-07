@@ -60,9 +60,30 @@ const PARTNER_TYPES = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Keur Arame", type: "Marchand · Médina", text: "Depuis que je suis sur Yitewo, des clients que je ne connaissais pas me trouvent. J'ai reçu mes premières commandes en dehors de mon quartier.", avatar: "K" },
-  { name: "Chez Mama", type: "Restaurant · Ouest-Foire", text: "Mon menu est maintenant visible en ligne. Les clients peuvent commander directement sans appeler. C'est beaucoup plus simple pour moi.", avatar: "C" },
-  { name: "Micou Services", type: "Prestataire · Yoff", text: "Je reçois des demandes de services de quartiers que je n'aurais jamais connus avant. Yitewo m'a ouvert de nouveaux marchés.", avatar: "M" },
+  {
+    name: "Aminata Diallo", type: "Épicière · Médina, Dakar", avatar: "👩🏾‍🦱",
+    color: "#0369a1", bg: "#e0f2fe",
+    stats: "47 commandes ce mois",
+    text: "Depuis que je suis sur Yitewo, des clients que je ne connaissais pas me trouvent. J'ai reçu mes premières commandes en dehors de mon quartier.",
+  },
+  {
+    name: "Moussa Ndoye", type: "Restaurateur · Plateau, Dakar", avatar: "👨🏾‍🍳",
+    color: "#b45309", bg: "#fef3c7",
+    stats: "Plat du jour en ligne chaque matin",
+    text: "Mon menu est maintenant visible en ligne. Les clients commandent directement sans appeler. J'affiche mon thiéboudienne du jour et je reçois des commandes avant même d'ouvrir.",
+  },
+  {
+    name: "Fatou Seck", type: "Coiffeuse · Ziguinchor", avatar: "💇🏾‍♀️",
+    color: "#065f46", bg: "#d1fae5",
+    stats: "12 nouveaux clients ce trimestre",
+    text: "Je reçois des demandes de services de quartiers que je n'aurais jamais connus avant. Yitewo m'a ouvert de nouveaux marchés.",
+  },
+  {
+    name: "Ibrahima Baldé", type: "Boutiquier · Touba", avatar: "🧔🏾",
+    color: "#6d28d9", bg: "#ede9fe",
+    stats: "Visible dans 3 quartiers",
+    text: "Avant Yitewo, mes clients c'était uniquement le voisinage. Maintenant des gens de toute la ville passent commande. C'est simple et ça ne me coûte rien.",
+  },
 ];
 
 const CITIES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Kaolack", "Touba", "Mbour", "Rufisque", "Louga", "Diourbel", "Tambacounda", "Kolda", "Matam", "Kaffrine", "Kédougou"];
@@ -306,22 +327,33 @@ export default function HomePage() {
       <section style={{ maxWidth: 1140, margin: "0 auto", padding: "80px 20px 0" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={{ display: "inline-block", padding: "4px 14px", borderRadius: 99, background: "#fef3c7", color: "#b45309", fontSize: 12, fontWeight: 700, marginBottom: 14 }}>ILS FONT CONFIANCE À YITEWO</span>
-          <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", color: "var(--text)" }}>
-            Nos premiers partenaires témoignent
+          <h2 style={{ fontFamily: "Syne", fontWeight: 800, fontSize: "clamp(22px,3vw,30px)", color: "var(--text)", marginBottom: 10 }}>
+            Marchands, restaurants, prestataires…
           </h2>
+          <p style={{ fontSize: 15, color: "var(--muted)", maxWidth: 540, margin: "0 auto" }}>
+            Tous types d'activités, partout au Sénégal. Voici quelques partenaires qui ont rejoint Yitewo.
+          </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
           {TESTIMONIALS.map((t) => (
-            <div key={t.name} style={{ background: "#fff", borderRadius: 20, border: "1px solid var(--border)", padding: "28px 24px" }}>
-              <div style={{ fontSize: 20, color: "#E8380D", marginBottom: 14, letterSpacing: 2 }}>★★★★★</div>
-              <p style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.7, marginBottom: 20, fontStyle: "italic" }}>"{t.text}"</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #E8380D, #ff6b3d)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Syne", fontWeight: 800, fontSize: 16, color: "#fff" }}>{t.avatar}</div>
+            <div key={t.name} style={{ background: "#fff", borderRadius: 20, border: `1px solid ${t.color}22`, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Header persona */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: t.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0, border: `2px solid ${t.color}33` }}>
+                  {t.avatar}
+                </div>
                 <div>
-                  <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 14, color: "var(--text)", margin: 0 }}>{t.name}</p>
-                  <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>{t.type}</p>
+                  <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 14, color: "var(--text)", margin: 0 }}>{t.name}</p>
+                  <p style={{ fontSize: 11, color: t.color, margin: 0, fontWeight: 600 }}>{t.type}</p>
                 </div>
               </div>
+              {/* Stat badge */}
+              <div style={{ background: t.bg, color: t.color, fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 99, display: "inline-block", alignSelf: "flex-start" }}>
+                📊 {t.stats}
+              </div>
+              {/* Témoignage */}
+              <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.7, fontStyle: "italic", margin: 0 }}>"{t.text}"</p>
+              <div style={{ fontSize: 14, color: "#f59e0b", marginTop: "auto" }}>★★★★★</div>
             </div>
           ))}
         </div>

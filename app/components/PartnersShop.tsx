@@ -32,7 +32,7 @@ function getOpenStatus(openingHours?: Record<string, { open: boolean; from: stri
   bg: string;
 } {
   if (!openingHours) return { isOpen: null, label: "", color: "", bg: "" };
-  const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const days = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
   const now = new Date();
   const dayName = days[now.getDay()];
   const h = openingHours[dayName];

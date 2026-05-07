@@ -25,7 +25,7 @@ interface Partner {
 
 function getOpenStatus(openingHours?: Record<string, { open: boolean; from: string; to: string }> | null) {
   if (!openingHours) return null;
-  const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const days = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
   const now = new Date();
   const h = openingHours[days[now.getDay()]];
   if (!h || !h.open) return { isOpen: false, label: "Fermé", color: "#dc2626", bg: "#fee2e2" };
@@ -431,11 +431,13 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
               </p>
 
               {/* Statut ouvert/fermé */}
-              {(() => { const s = getOpenStatus(selected.openingHours); return s ? (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.bg, color: s.color, borderRadius: 99, padding: "4px 10px", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>
-                  {s.isOpen ? "● Ouvert" : "○ Fermé"} <span style={{ fontWeight: 400, opacity: 0.8 }}>· {s.label.split("·")[1]?.trim()}</span>
-                </div>
-              ) : null; })()}
+              {(() => {
+                const s = getOpenStatus(selected.openingHours); return s ? (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: s.bg, color: s.color, borderRadius: 99, padding: "4px 10px", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>
+                    {s.isOpen ? "● Ouvert" : "○ Fermé"} <span style={{ fontWeight: 400, opacity: 0.8 }}>· {s.label.split("·")[1]?.trim()}</span>
+                  </div>
+                ) : null;
+              })()}
 
               {selected.avgRating && selected.reviewCount > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
@@ -644,11 +646,13 @@ function PartnerCard({ p, selected, onClick }: { p: Partner; selected: boolean; 
           )}
         </div>
         {p.promo && <span style={{ fontSize: 10, background: "#fff5f3", color: "#E8380D", border: "1px solid #fdd0c5", borderRadius: 99, padding: "2px 7px", fontWeight: 700, flexShrink: 0 }}>🔥 Promo</span>}
-        {(() => { const s = getOpenStatus(p.openingHours); return s ? (
-          <span style={{ fontSize: 9, fontWeight: 800, background: s.bg, color: s.color, borderRadius: 99, padding: "2px 7px", flexShrink: 0 }}>
-            {s.isOpen ? "●" : "○"} {s.isOpen ? "Ouvert" : "Fermé"}
-          </span>
-        ) : null; })()}
+        {(() => {
+          const s = getOpenStatus(p.openingHours); return s ? (
+            <span style={{ fontSize: 9, fontWeight: 800, background: s.bg, color: s.color, borderRadius: 99, padding: "2px 7px", flexShrink: 0 }}>
+              {s.isOpen ? "●" : "○"} {s.isOpen ? "Ouvert" : "Fermé"}
+            </span>
+          ) : null;
+        })()}
       </div>
       <Link href={`/shop/${p.slug}`} onClick={(e) => e.stopPropagation()} style={{
         display: "block", marginTop: 12, padding: "8px", borderRadius: 8,
