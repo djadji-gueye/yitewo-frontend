@@ -30,7 +30,7 @@ const PARTNER_TYPES = [
     desc: "Plombier, électricien, ménage, coiffeur, jardinage, cours particuliers, informatique, déménagement…",
     color: "#065f46", bg: "#d1fae5",
     benefits: ["Profil visible sur /services", "Mises en relation directes", "Filtrage par spécialité", "Contactable sur WhatsApp"],
-    examples: ["🧹 Ménage à domicile", "🚰 Plomberie", "💡 Électricité", "✂️ Coiffure à domicile", "📚 Cours particuliers", "💻 Dépannage informatique", "📦 Déménagement", "🌿 Jardinage"],
+    examples: ["🧹 Ménage à domicile", "🚰 Plomberie", "📦 Livreur", "💡 Électricité", "✂️ Coiffure à domicile", "📚 Cours particuliers", "💻 Dépannage informatique", "📦 Déménagement", "🌿 Jardinage"],
   },
 ];
 

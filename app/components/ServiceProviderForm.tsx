@@ -6,6 +6,7 @@ import { createPartner } from "@/lib/api";
 const SERVICE_CATEGORIES = [
   "Ménage à domicile",
   "Plomberie",
+  "Livreur",
   "Électricité",
   "Climatisation",
   "Bricolage / Réparations",
