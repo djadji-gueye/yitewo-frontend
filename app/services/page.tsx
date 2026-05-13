@@ -26,6 +26,7 @@ interface Provider {
   id: string; name: string; city: string; zone?: string;
   contact: string; serviceCategories?: string[];
   message?: string; profileImageUrl?: string;
+  lat?: number; lng?: number;
 }
 
 const parseMessage = (msg?: string) => ({
@@ -51,6 +52,11 @@ export default function ServicesPage() {
   const [providersLoading, setProvidersLoading] = useState(false);
   const [filterCat, setFilterCat] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [nearMode, setNearMode] = useState(false);
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [radius, setRadius] = useState(5);
 
   useEffect(() => {
     if (tab === "providers") {
@@ -77,10 +83,38 @@ export default function ServicesPage() {
 
   const resetForm = () => { setService(null); setDescription(""); setName(""); setPhone(""); setLocation({ city: "Dakar", quarter: "", deliveryFee: 0 }); setStep("list"); setDrawerOpen(false); };
 
+  const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const requestGeo = () => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setUserLat(pos.coords.latitude); setUserLng(pos.coords.longitude); setNearMode(true); setGeoLoading(false); },
+      () => setGeoLoading(false)
+    );
+  };
+
   const cats = [...new Set(providers.flatMap((p) => p.serviceCategories || []))];
   const filteredProviders = providers
     .filter((p) => !filterCat || p.serviceCategories?.includes(filterCat))
-    .filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.zone?.toLowerCase().includes(search.toLowerCase()));
+    .filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.zone?.toLowerCase().includes(search.toLowerCase()))
+    .filter((p) => {
+      if (!nearMode || userLat === null || userLng === null) return true;
+      if (!p.lat || !p.lng) return true;
+      return haversine(userLat, userLng, p.lat, p.lng) <= radius;
+    })
+    .sort((a, b) => {
+      if (!nearMode || userLat === null || userLng === null) return 0;
+      const da = (a.lat && a.lng) ? haversine(userLat, userLng, a.lat, a.lng) : 999;
+      const db = (b.lat && b.lng) ? haversine(userLat, userLng, b.lat, b.lng) : 999;
+      return da - db;
+    });
 
   return (
     <div style={{ background: "var(--surface)", minHeight: "100vh", fontFamily: "DM Sans, sans-serif" }}>
@@ -167,17 +201,38 @@ export default function ServicesPage() {
         {tab === "providers" && (
           <>
             {/* Search + filters */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="🔍 Rechercher un prestataire…"
                 style={{ flex: "1 1 200px", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--border)", fontSize: 13, outline: "none", background: "#fff" }} />
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flex: "100%", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  <button onClick={() => setFilterCat(null)} style={pillStyle(!filterCat)}>Tous</button>
-                  {cats.map((c) => <button key={c} onClick={() => setFilterCat(c)} style={pillStyle(filterCat === c)}>{c}</button>)}
-                </div>
-                {providers.length > 0 && <span style={{ fontSize: 12, color: "var(--muted)" }}>{filteredProviders.length} prestataire{filteredProviders.length > 1 ? "s" : ""}</span>}
+              <button
+                onClick={() => { if (nearMode) { setNearMode(false); } else { requestGeo(); } }}
+                disabled={geoLoading}
+                style={{ padding: "10px 16px", borderRadius: 10, border: `1.5px solid ${nearMode ? "#E8380D" : "var(--border)"}`, background: nearMode ? "#fff5f3" : "#fff", color: nearMode ? "#E8380D" : "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" as const, transition: "all 0.2s" }}>
+                {geoLoading ? "⏳" : "📍"} {geoLoading ? "Localisation…" : nearMode ? "Près de moi" : "À mes alentours"}
+              </button>
+            </div>
+
+            {/* Slider rayon si mode near */}
+            {nearMode && userLat !== null && (
+              <div style={{ background: "#fff5f3", border: "1px solid #fdd0c5", borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 13, color: "#E8380D", fontWeight: 700, whiteSpace: "nowrap" as const }}>📍 Rayon</span>
+                <input type="range" min={1} max={25} step={1} value={radius} onChange={(e) => setRadius(Number(e.target.value))}
+                  style={{ flex: 1, accentColor: "#E8380D" }} />
+                <span style={{ fontSize: 13, color: "#E8380D", fontWeight: 700, minWidth: 42 }}>{radius} km</span>
+                <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" as const }}>
+                  {filteredProviders.length} prestataire{filteredProviders.length > 1 ? "s" : ""}
+                </span>
               </div>
+            )}
+
+            {/* Filtre catégories */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <button onClick={() => setFilterCat(null)} style={pillStyle(!filterCat)}>Tous</button>
+                {cats.map((c) => <button key={c} onClick={() => setFilterCat(c)} style={pillStyle(filterCat === c)}>{c}</button>)}
+              </div>
+              {!nearMode && providers.length > 0 && <span style={{ fontSize: 12, color: "var(--muted)" }}>{filteredProviders.length} prestataire{filteredProviders.length > 1 ? "s" : ""}</span>}
             </div>
 
             {providersLoading ? (
@@ -281,68 +336,80 @@ export default function ServicesPage() {
 }
 
 function ProviderCard({ provider, bio, experience, disponibilite }: { provider: Provider; bio?: string; experience?: string; disponibilite?: string }) {
-  const initials = provider.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-  const hue = [...provider.name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+  const initials = provider.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+  const hue = [...provider.name].reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0) % 360;
   const hue2 = (hue + 70) % 360;
 
   return (
     <div className="product-card" style={{ background: "#fff", borderRadius: 20, border: "1px solid var(--border)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      {/* Cover */}
-      <div style={{ height: 88, background: `linear-gradient(135deg,hsl(${hue},55%,18%) 0%,hsl(${hue2},65%,38%) 100%)`, position: "relative", flexShrink: 0 }}>
-        <div style={{ position: "absolute", top: -30, right: -30, width: 110, height: 110, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-        <span style={{ position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "rgba(255,255,255,0.18)", color: "#fff", backdropFilter: "blur(4px)" }}>✓ Vérifié</span>
-      </div>
 
-      {/* Avatar */}
-      <div style={{ width: 68, height: 68, borderRadius: "50%", border: "3px solid #fff", overflow: "hidden", marginTop: -34, marginLeft: 18, position: "relative", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", background: "#f0f0f0", flexShrink: 0 }}>
-        <img
-          src={provider.profileImageUrl || `https://api.dicebear.com/7.x/personas/svg?seed=${encodeURIComponent(provider.name)}&backgroundColor=b6e3f4,c0aede&size=120`}
-          alt={provider.name} width={68} height={68}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement;
-            el.style.display = "none";
-            const p = el.parentElement as HTMLElement;
-            p.style.background = `linear-gradient(135deg,hsl(${hue},50%,30%),hsl(${hue2},60%,45%))`;
-            p.innerHTML = `<span style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:#fff;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${initials}</span>`;
-          }}
-        />
-      </div>
-
-      {/* Info */}
-      <div style={{ padding: "10px 18px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
-        <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 15, color: "var(--text)", marginBottom: 2 }}>{provider.name}</p>
-        <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>📍 {provider.zone ? `${provider.zone}, ` : ""}{provider.city}</p>
-
-        {experience && (
-          <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 99, background: "#ede9fe", color: "#6d28d9", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 8, width: "fit-content" }}>
-            🎓 {experience} d&apos;expérience
-          </span>
-        )}
-
-        {bio && <p style={{ fontSize: 12, color: "#555", lineHeight: 1.6, marginBottom: 8, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{bio}</p>}
-
-        {disponibilite && (
-          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 }}>
-            {disponibilite.split(",").map((d) => d.trim()).filter(Boolean).map((d) => (
-              <span key={d} style={{ fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 99, background: "#fef3c7", color: "#b45309" }}>🕐 {d}</span>
-            ))}
+      {/* Photo de profil plein haut */}
+      <div style={{ position: "relative", height: 200, flexShrink: 0, overflow: "hidden" }}>
+        {provider.profileImageUrl ? (
+          <img
+            src={provider.profileImageUrl}
+            alt={provider.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+          />
+        ) : (
+          <div style={{
+            width: "100%", height: "100%",
+            background: `linear-gradient(145deg, hsl(${hue},55%,28%), hsl(${hue2},65%,42%))`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 52, color: "rgba(255,255,255,0.85)" }}>{initials}</span>
           </div>
         )}
+        {/* Dégradé bas */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.68) 100%)", pointerEvents: "none" }} />
 
+        {/* Badge vérifié haut droit */}
+        <span style={{ position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "rgba(255,255,255,0.92)", color: "#059669" }}>✓ Vérifié</span>
+
+        {/* Nom + lieu superposés en bas */}
+        <div style={{ position: "absolute", bottom: 12, left: 14, right: 14 }}>
+          <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 15, color: "#fff", marginBottom: 3, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{provider.name}</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.88)", fontWeight: 500 }}>📍 {provider.zone ? `${provider.zone}, ` : ""}{provider.city}</p>
+        </div>
+      </div>
+
+      {/* Contenu bas */}
+      <div style={{ padding: "12px 16px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+
+        {/* Spécialités */}
         {provider.serviceCategories && provider.serviceCategories.length > 0 && (
-          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 16, flex: 1 }}>
-            {provider.serviceCategories.slice(0, 3).map((c) => (
-              <span key={c} style={{ fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 99, background: "#d1fae5", color: "#065f46" }}>{c}</span>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {provider.serviceCategories.slice(0, 3).map((c: string) => (
+              <span key={c} style={{ fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 99, background: "#fff5f3", color: "#E8380D", border: "1px solid #fdd0c5" }}>{c}</span>
             ))}
             {provider.serviceCategories.length > 3 && <span style={{ fontSize: 10, color: "var(--muted)", padding: "3px 0" }}>+{provider.serviceCategories.length - 3}</span>}
           </div>
         )}
 
+        {/* Expérience */}
+        {experience && (
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#ede9fe", color: "#6d28d9", display: "inline-flex", alignItems: "center", gap: 4, width: "fit-content" }}>
+            🎓 {experience} d&apos;expérience
+          </span>
+        )}
+
+        {/* Disponibilités */}
+        {disponibilite && (
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {disponibilite.split(",").map((d: string) => d.trim()).filter(Boolean).map((d: string) => (
+              <span key={d} style={{ fontSize: 10, fontWeight: 600, padding: "3px 9px", borderRadius: 99, background: "#fef3c7", color: "#b45309" }}>🕐 {d}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Bio */}
+        {bio && <p style={{ fontSize: 12, color: "#555", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{bio}</p>}
+
+        {/* CTA WhatsApp */}
         <a href={`https://wa.me/${provider.contact?.replace(/[\s+]/g, "")}`} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "10px 16px", borderRadius: 11, background: "#25D366", color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 12, textDecoration: "none", marginTop: "auto" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-          Contacter
+          Contacter sur WhatsApp
         </a>
       </div>
     </div>

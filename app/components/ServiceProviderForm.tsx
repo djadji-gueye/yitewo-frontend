@@ -165,7 +165,7 @@ export default function ServiceProviderForm() {
   const toggleAvailability = (opt: string) =>
     setAvailability((prev) => prev.includes(opt) ? prev.filter((a) => a !== opt) : [...prev, opt]);
 
-  const canSend = name && city && contact && email && selectedCategories.length > 0 && profileImageUrl && workImageUrl;
+  const canSend = name && city && contact && selectedCategories.length > 0 && (profileImageUrl || imagePreview) && (workImageUrl || workImagePreview);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,7 +202,7 @@ export default function ServiceProviderForm() {
       <div style={{ fontSize: 52, marginBottom: 14 }}>🎉</div>
       <h3 style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Candidature enregistrée !</h3>
       <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7 }}>
-        Bienvenue dans le réseau Yitewo. Notre équipe va examiner votre dossier et vous contacter sous 48h au <strong>{contact}</strong>. Un email de confirmation a été envoyé à <strong>{email}</strong>.
+        Bienvenue dans le réseau Yitewo. Notre équipe va examiner votre dossier et vous contacter sous 48h au <strong>{contact}</strong>.{email ? <> Un email de confirmation a été envoyé à <strong>{email}</strong>.</> : ""}
       </p>
     </div>
   );
@@ -261,7 +261,8 @@ export default function ServiceProviderForm() {
               </div>
             )}
             {profileImageUrl && <p style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>✓ Photo de profil enregistrée</p>}
-            {!profileImageUrl && <p style={{ fontSize: 11, color: "#ef4444" }}>⚠️ Photo obligatoire avant soumission</p>}
+            {!profileImageUrl && imagePreview && <p style={{ fontSize: 11, color: "#f59e0b", fontWeight: 600 }}>⏳ Upload en cours…</p>}
+            {!profileImageUrl && !imagePreview && <p style={{ fontSize: 11, color: "#ef4444" }}>⚠️ Photo obligatoire avant soumission</p>}
           </div>
         </div>
       </div>
@@ -298,7 +299,8 @@ export default function ServiceProviderForm() {
             <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleWorkImageUpload(e.target.files[0]); }} />
           </label>
         )}
-        {!workImageUrl && <p style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>⚠️ Photo de lieu de travail obligatoire avant soumission</p>}
+        {!workImageUrl && workImagePreview && <p style={{ fontSize: 11, color: "#f59e0b", marginTop: 6, fontWeight: 600 }}>⏳ Upload en cours…</p>}
+        {!workImageUrl && !workImagePreview && <p style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>⚠️ Photo de lieu de travail obligatoire avant soumission</p>}
       </div>
 
       {/* ── Nom ── */}
@@ -351,6 +353,12 @@ export default function ServiceProviderForm() {
       <div>
         <label style={labelStyle}>Numéro WhatsApp *</label>
         <input value={contact} onChange={(e) => setContact(e.target.value)} required placeholder="Ex : 221 77 000 00 00" type="tel" style={inputStyle} />
+      </div>
+
+      {/* ── Email ── */}
+      <div>
+        <label style={labelStyle}>Adresse email <span style={{ color: "var(--muted)", fontWeight: 400 }}>(optionnel)</span></label>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Ex : moussa@email.com" type="email" style={inputStyle} />
       </div>
 
       {/* ── Catégories ── */}
