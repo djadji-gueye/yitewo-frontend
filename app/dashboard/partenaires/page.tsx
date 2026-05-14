@@ -169,7 +169,9 @@ export default function PartenairesPage() {
   const copyPortalLink = (partnerId: string) => {
     const token = tokens[partnerId];
     if (!token) return;
-    const url = `${window.location.origin}/partner-portal/${token}`;
+    const partner = partners.find((p) => p.id === partnerId);
+    const portalBase = partner?.type === "Prestataire" ? "prestataire-portal" : "partner-portal";
+    const url = `${window.location.origin}/${portalBase}/${token}`;
     navigator.clipboard?.writeText(url);
     setCopiedId(partnerId);
     setTimeout(() => setCopiedId(null), 2000);
@@ -281,7 +283,8 @@ export default function PartenairesPage() {
             const meta = TYPE_META[partner.type] || { icon: "👤", color: "#888" };
             const hasToken = !!tokens[partner.id];
             const isCopied = copiedId === partner.id;
-            const portalUrl = hasToken ? `${typeof window !== "undefined" ? window.location.origin : ""}/partner-portal/${tokens[partner.id]}` : null;
+            const portalBase = partner.type === "Prestataire" ? "prestataire-portal" : "partner-portal";
+            const portalUrl = hasToken ? `${typeof window !== "undefined" ? window.location.origin : ""}/${portalBase}/${tokens[partner.id]}` : null;
 
             return (
               <div key={partner.id}>
@@ -354,8 +357,8 @@ export default function PartenairesPage() {
                         <p style={{ fontSize: 12, color: "#555", marginTop: 6, lineHeight: 1.5 }}>💬 {partner.message}</p>
                       )}
 
-                      {/* Portal link — pas pour les Prestataires */}
-                      {hasToken && partner.isActive && partner.type !== "Prestataire" && (
+                      {/* Portal link — tous types */}
+                      {hasToken && partner.isActive && (
                         <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <code style={{ fontSize: 11, color: "#3b82f6", background: "rgba(59,130,246,0.1)", padding: "3px 8px", borderRadius: 6, maxWidth: 320, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                             {portalUrl}
@@ -405,19 +408,20 @@ export default function PartenairesPage() {
                         📍 Géoloc & bannière
                       </button>
 
-                      {/* Portail uniquement pour Marchand et Restaurant */}
-                      {partner.isActive && partner.type !== "Prestataire" && (
+                      {/* Portail — tous types actifs */}
+                      {partner.isActive && (
                         <button
                           onClick={() => hasToken ? copyPortalLink(partner.id) : generateToken(partner.id)}
                           disabled={acting === partner.id}
                           style={{
                             padding: "7px 14px", borderRadius: 8, fontSize: 11,
-                            border: "1px solid rgba(59,130,246,0.3)",
-                            background: "rgba(59,130,246,0.08)",
-                            color: "#3b82f6", cursor: "pointer", fontWeight: 600,
+                            border: `1px solid ${partner.type === "Prestataire" ? "rgba(139,92,246,0.3)" : "rgba(59,130,246,0.3)"}`,
+                            background: partner.type === "Prestataire" ? "rgba(139,92,246,0.08)" : "rgba(59,130,246,0.08)",
+                            color: partner.type === "Prestataire" ? "#8b5cf6" : "#3b82f6",
+                            cursor: "pointer", fontWeight: 600,
                           }}
                         >
-                          {acting === partner.id ? "…" : hasToken ? (isCopied ? "✅ Copié !" : "🔗 Copier lien portal") : "🔑 Générer lien portal"}
+                          {acting === partner.id ? "…" : hasToken ? (isCopied ? "✅ Copié !" : "🔗 Copier lien portail") : "🔑 Générer lien portail"}
                         </button>
                       )}
                     </div>
