@@ -128,7 +128,7 @@ export default function ContactPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
           {[
             { ico: "✉️", label: "Email", val: "yitewoo@gmail.com", href: "mailto:yitewoo@gmail.com" },
-            { ico: "📱", label: "WhatsApp", val: "+221 77 069 80 80", href: "https://wa.me/2217770698080?text=Bonjour Yitewo" },
+            { ico: "📱", label: "WhatsApp", val: "+221 76 780 19 29", href: "https://wa.me/2217767801929?text=Bonjour Yitewo" },
             { ico: "📘", label: "Facebook", val: "@yitewo", href: "https://www.facebook.com/yitewo" },
           ].map((c) => (
             <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer"
