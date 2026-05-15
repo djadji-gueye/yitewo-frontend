@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 function authFetch(path: string, options?: RequestInit) {
-  const token = typeof window !== "undefined"
-    ? localStorage.getItem("yitewo_token") || ""
-    : "";
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("yitewo_token") || ""
+      : "";
   return fetch(`${BASE}${path}`, {
     ...options,
     headers: {
@@ -50,31 +51,36 @@ function AgentTester() {
 
   return (
     <div>
-      {/* Historique */}
-      <div style={{
-        minHeight: 180, maxHeight: 300, overflowY: "auto",
-        background: "#080812", borderRadius: "10px 10px 0 0",
-        padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10,
-        border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none",
-      }}>
+      <div
+        style={{
+          minHeight: 180, maxHeight: 300, overflowY: "auto",
+          background: "#080812", borderRadius: "10px 10px 0 0",
+          padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10,
+          border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none",
+        }}
+      >
         {history.length === 0 ? (
           <p style={{ color: "#333", fontSize: 12, textAlign: "center", marginTop: 50 }}>
             Simulez un message client WhatsApp…
           </p>
-        ) : history.map((h, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: h.role === "user" ? "flex-end" : "flex-start" }}>
-            <div style={{
-              maxWidth: "78%", padding: "9px 13px",
-              borderRadius: h.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-              background: h.role === "user" ? "#1A9E5F" : "#1a1a2e",
-              color: "#fff", fontSize: 13, lineHeight: 1.55,
-              border: h.role === "bot" ? "1px solid rgba(255,255,255,0.07)" : "none",
-              whiteSpace: "pre-wrap",
-            }}>
-              {h.text}
+        ) : (
+          history.map((h, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: h.role === "user" ? "flex-end" : "flex-start" }}>
+              <div
+                style={{
+                  maxWidth: "78%", padding: "9px 13px",
+                  borderRadius: h.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                  background: h.role === "user" ? "#1A9E5F" : "#1a1a2e",
+                  color: "#fff", fontSize: 13, lineHeight: 1.55,
+                  border: h.role === "bot" ? "1px solid rgba(255,255,255,0.07)" : "none",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {h.text}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start" }}>
             <div style={{ padding: "9px 18px", borderRadius: "14px 14px 14px 4px", background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -85,7 +91,6 @@ function AgentTester() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div style={{ display: "flex", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
         <input
           value={msg}
@@ -103,10 +108,13 @@ function AgentTester() {
         </button>
       </div>
 
-      {/* Suggestions rapides */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
         {["J'ai besoin d'un plombier", "Montrez-moi les boutiques", "aide", "Je veux m'inscrire comme prestataire"].map((s) => (
-          <button key={s} onClick={() => { setMsg(s); }} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 99, background: "rgba(26,158,95,0.1)", border: "1px solid rgba(26,158,95,0.2)", color: "#1A9E5F", cursor: "pointer" }}>
+          <button
+            key={s}
+            onClick={() => setMsg(s)}
+            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 99, background: "rgba(26,158,95,0.1)", border: "1px solid rgba(26,158,95,0.2)", color: "#1A9E5F", cursor: "pointer" }}
+          >
             {s}
           </button>
         ))}
@@ -125,9 +133,34 @@ export default function ParametresPage() {
   const [waPhoneId, setWaPhoneId] = useState("");
   const [waVerify, setWaVerify] = useState("yitewo_webhook_2024");
   const [groqKey, setGroqKey] = useState("");
+  const [waSaving, setWaSaving] = useState(false);
   const [waSaved, setWaSaved] = useState(false);
+  const [waSaveError, setWaSaveError] = useState("");
   const [waConnected, setWaConnected] = useState(false);
+  const [waLastSaved, setWaLastSaved] = useState<string | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
   const [webhookCopied, setWebhookCopied] = useState(false);
+
+  // Chargement de la config depuis le backend au montage
+  useEffect(() => {
+    authFetch("/whatsapp/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.isConnected !== undefined) {
+          setWaConnected(data.isConnected);
+          // Pré-remplir phoneId et verifyToken (pas les secrets complets)
+          if (data.phoneId) setWaPhoneId(data.phoneId);
+          if (data.verifyToken) setWaVerify(data.verifyToken);
+          if (data.updatedAt) {
+            setWaLastSaved(new Date(data.updatedAt).toLocaleString("fr-FR"));
+          }
+        }
+      })
+      .catch(() => {
+        // Silencieux — pas de config existante
+      })
+      .finally(() => setConfigLoading(false));
+  }, []);
 
   // Password states
   const [oldPwd, setOldPwd] = useState("");
@@ -151,18 +184,37 @@ export default function ParametresPage() {
       setPwdStatus("success");
       setOldPwd(""); setNewPwd(""); setConfirm("");
     } catch (err: any) {
-      setPwdError(err?.message || "Erreur"); setPwdStatus("error");
+      setPwdError(err?.message || "Erreur");
+      setPwdStatus("error");
     }
   };
 
-  const saveWA = () => {
-    // Enregistrer en localStorage (à terme → appel API backend pour persistance)
-    localStorage.setItem("wa_token", waToken);
-    localStorage.setItem("wa_phone_id", waPhoneId);
-    localStorage.setItem("wa_verify_token", waVerify);
-    setWaSaved(true);
-    setWaConnected(!!(waToken && waPhoneId));
-    setTimeout(() => setWaSaved(false), 2500);
+  // ── Sauvegarde WhatsApp → backend (persistance DB) ────────────
+  const saveWA = async () => {
+    if (!waToken || !waPhoneId || !groqKey) return;
+    setWaSaving(true);
+    setWaSaveError("");
+    try {
+      const res = await authFetch("/whatsapp/config", {
+        method: "POST",
+        body: JSON.stringify({
+          phoneId: waPhoneId,
+          token: waToken,
+          verifyToken: waVerify,
+          groqApiKey: groqKey,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Erreur sauvegarde");
+      setWaConnected(data.isConnected);
+      setWaLastSaved(new Date(data.updatedAt).toLocaleString("fr-FR"));
+      setWaSaved(true);
+      setTimeout(() => setWaSaved(false), 3000);
+    } catch (err: any) {
+      setWaSaveError(err?.message || "Erreur lors de la sauvegarde");
+    } finally {
+      setWaSaving(false);
+    }
   };
 
   const copyWebhook = () => {
@@ -170,6 +222,8 @@ export default function ParametresPage() {
     setWebhookCopied(true);
     setTimeout(() => setWebhookCopied(false), 2000);
   };
+
+  const canSaveWA = !!(waToken && waPhoneId && groqKey) && !waSaving;
 
   const TABS = [
     { key: "whatsapp", label: "💬 WhatsApp Agent IA" },
@@ -185,12 +239,16 @@ export default function ParametresPage() {
       {/* Onglets */}
       <div style={{ display: "flex", gap: 4, marginBottom: 28, background: "#13131f", borderRadius: 10, padding: 4, border: "1px solid rgba(255,255,255,0.06)", width: "fit-content" }}>
         {TABS.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key as any)} style={{
-            padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13,
-            background: tab === t.key ? "#1A9E5F" : "transparent",
-            color: tab === t.key ? "#fff" : "#555",
-            fontWeight: tab === t.key ? 700 : 400, transition: "all 0.2s",
-          }}>
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key as any)}
+            style={{
+              padding: "7px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13,
+              background: tab === t.key ? "#1A9E5F" : "transparent",
+              color: tab === t.key ? "#fff" : "#555",
+              fontWeight: tab === t.key ? 700 : 400, transition: "all 0.2s",
+            }}
+          >
             {t.label}
           </button>
         ))}
@@ -198,29 +256,52 @@ export default function ParametresPage() {
 
       {/* ════════════ ONGLET WHATSAPP ════════════ */}
       {tab === "whatsapp" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Carte statut */}
-          <div style={{ background: "#13131f", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: "#1A9E5F22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-                💬
-              </div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 15, color: "#fff", marginBottom: 3 }}>WhatsApp Business API</p>
-                <p style={{ fontSize: 12, color: "#555" }}>Agent IA Groq (Llama 3.3) — gratuit · répond 24h/7j en français et wolof</p>
-              </div>
-              <div style={{ padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: waConnected ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.04)", color: waConnected ? "#10b981" : "#444", border: `1px solid ${waConnected ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}` }}>
-                {waConnected ? "● Connecté" : "○ Non configuré"}
-              </div>
+          {/* Bandeau statut connexion */}
+          {configLoading ? (
+            <div style={{ background: "#13131f", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ color: "#444", fontSize: 13 }}>Chargement de la configuration…</span>
             </div>
+          ) : (
+            <div style={{
+              background: waConnected ? "rgba(26,158,95,0.08)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${waConnected ? "rgba(26,158,95,0.25)" : "rgba(255,255,255,0.06)"}`,
+              borderRadius: 12, padding: "14px 18px",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: waConnected ? "#1A9E5F" : "#333", boxShadow: waConnected ? "0 0 6px #1A9E5F" : "none", flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 13, color: waConnected ? "#1A9E5F" : "#555", margin: 0 }}>
+                    {waConnected ? "Agent IA connecté" : "Non configuré"}
+                  </p>
+                  {waLastSaved && (
+                    <p style={{ fontSize: 11, color: "#444", margin: "2px 0 0" }}>
+                      Dernière sauvegarde : {waLastSaved}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {waConnected && (
+                <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 99, background: "rgba(26,158,95,0.15)", color: "#1A9E5F", border: "1px solid rgba(26,158,95,0.3)", fontWeight: 700 }}>
+                  ✓ ACTIF
+                </span>
+              )}
+            </div>
+          )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 16 }}>
+          {/* Avantages */}
+          <div style={{ background: "rgba(26,158,95,0.06)", border: "1px solid rgba(26,158,95,0.15)", borderRadius: 12, padding: "14px 18px" }}>
+            <p style={{ fontFamily: "Syne", fontWeight: 700, fontSize: 13, color: "#1A9E5F", marginBottom: 10 }}>
+              Agent IA Groq (Llama 3.3) — gratuit · répond 24h/7j en français et wolof
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[
                 "Répond automatiquement aux clients WhatsApp",
                 "Oriente vers le bon prestataire ou boutique",
                 "Crée les demandes de service automatiquement",
-                "Gratuit — Meta ne facture pas les réponses",
+                "Configuration sauvegardée en base de données",
               ].map((item) => (
                 <div key={item} style={{ display: "flex", gap: 7, alignItems: "flex-start", fontSize: 12, color: "#666" }}>
                   <span style={{ color: "#1A9E5F", flexShrink: 0 }}>✓</span> {item}
@@ -253,11 +334,11 @@ export default function ParametresPage() {
               value={groqKey}
               onChange={(e) => setGroqKey(e.target.value)}
               type="password"
-              placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx"
+              placeholder={waConnected ? "••••••••••••••• (déjà enregistrée)" : "gsk_xxxxxxxxxxxxxxxxxxxxxxxx"}
               style={inputStyle}
             />
             <p style={{ fontSize: 11, color: "#444", marginTop: 6 }}>
-              À ajouter aussi dans votre <code style={{ color: "#666" }}>.env</code> backend : <code style={{ color: "#666" }}>GROQ_API_KEY=gsk_xxx...</code>
+              La clé est stockée de façon sécurisée dans la base de données — plus besoin du <code style={{ color: "#555" }}>.env</code>.
             </p>
           </div>
 
@@ -288,7 +369,10 @@ export default function ParametresPage() {
               <code style={{ flex: 1, padding: "10px 13px", borderRadius: 8, background: "#080812", color: "#1A9E5F", fontSize: 12, border: "1px solid rgba(26,158,95,0.2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                 {WEBHOOK_URL}
               </code>
-              <button onClick={copyWebhook} style={{ padding: "9px 14px", borderRadius: 8, background: webhookCopied ? "rgba(16,185,129,0.15)" : "rgba(26,158,95,0.1)", border: "1px solid rgba(26,158,95,0.25)", color: webhookCopied ? "#10b981" : "#1A9E5F", cursor: "pointer", fontSize: 12, fontWeight: 600, flexShrink: 0, transition: "all 0.2s" }}>
+              <button
+                onClick={copyWebhook}
+                style={{ padding: "9px 14px", borderRadius: 8, background: webhookCopied ? "rgba(16,185,129,0.15)" : "rgba(26,158,95,0.1)", border: "1px solid rgba(26,158,95,0.25)", color: webhookCopied ? "#10b981" : "#1A9E5F", cursor: "pointer", fontSize: 12, fontWeight: 600, flexShrink: 0, transition: "all 0.2s" }}
+              >
                 {webhookCopied ? "✅ Copié" : "📋 Copier"}
               </button>
             </div>
@@ -297,45 +381,65 @@ export default function ParametresPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
                 <label style={lblStyle}>Phone Number ID</label>
-                <input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} placeholder="Ex: 123456789012345" style={inputStyle} />
+                <input
+                  value={waPhoneId}
+                  onChange={(e) => setWaPhoneId(e.target.value)}
+                  placeholder="Ex: 123456789012345"
+                  style={inputStyle}
+                />
               </div>
               <div>
                 <label style={lblStyle}>Access Token (permanent)</label>
-                <input value={waToken} onChange={(e) => setWaToken(e.target.value)} type="password" placeholder="EAAxxxxxxxxxxxxxx…" style={inputStyle} />
+                <input
+                  value={waToken}
+                  onChange={(e) => setWaToken(e.target.value)}
+                  type="password"
+                  placeholder={waConnected ? "••••••••••••••• (déjà enregistré)" : "EAAxxxxxxxxxxxxxx…"}
+                  style={inputStyle}
+                />
               </div>
               <div>
                 <label style={lblStyle}>Token de vérification webhook</label>
-                <input value={waVerify} onChange={(e) => setWaVerify(e.target.value)} placeholder="yitewo_webhook_2024" style={inputStyle} />
+                <input
+                  value={waVerify}
+                  onChange={(e) => setWaVerify(e.target.value)}
+                  placeholder="yitewo_webhook_2024"
+                  style={inputStyle}
+                />
               </div>
             </div>
 
-            {/* Variables .env */}
-            <div style={{ marginTop: 14, background: "#080812", borderRadius: 8, padding: "12px 14px" }}>
-              <p style={{ fontSize: 11, color: "#444", fontWeight: 700, marginBottom: 8 }}>
-                📄 Variables à ajouter dans le <code style={{ color: "#555" }}>.env</code> backend (Render → Environment) :
-              </p>
-              <pre style={{ fontSize: 11, color: "#666", margin: 0, lineHeight: 2, fontFamily: "monospace" }}>
-                {`GROQ_API_KEY=gsk_xxxxxxxxxxxx
-WHATSAPP_TOKEN=EAAxxxxxxxxxx
-WHATSAPP_PHONE_ID=12345678901
-WHATSAPP_VERIFY_TOKEN=yitewo_webhook_2024`}
-              </pre>
-            </div>
+            {/* Erreur sauvegarde */}
+            {waSaveError && (
+              <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, background: "rgba(232,56,13,0.1)", border: "1px solid rgba(232,56,13,0.25)", color: "#ff8a70", fontSize: 12 }}>
+                ❌ {waSaveError}
+              </div>
+            )}
 
+            {/* Bouton sauvegarde */}
             <button
               onClick={saveWA}
-              disabled={!waToken || !waPhoneId || !groqKey}
+              disabled={!canSaveWA}
               style={{
-                marginTop: 16, width: "100%", padding: "12px", borderRadius: 10, border: "none",
-                background: waToken && waPhoneId && groqKey ? "#1A9E5F" : "#1a1a1a",
-                color: waToken && waPhoneId && groqKey ? "#fff" : "#333",
+                marginTop: 16, width: "100%", padding: "12px", borderRadius: 10,
+                background: waSaved ? "rgba(16,185,129,0.15)" : canSaveWA ? "#1A9E5F" : "#1a1a1a",
+                color: waSaved ? "#10b981" : canSaveWA ? "#fff" : "#333",
                 fontFamily: "Syne", fontWeight: 700, fontSize: 14,
-                cursor: waToken && waPhoneId && groqKey ? "pointer" : "not-allowed",
+                cursor: canSaveWA ? "pointer" : "not-allowed",
                 transition: "all 0.2s",
-              }}
+                border: waSaved ? "1px solid rgba(16,185,129,0.3)" : "none",
+              } as React.CSSProperties}
             >
-              {waSaved ? "✅ Configuration sauvegardée !" : "💾 Sauvegarder la configuration"}
+              {waSaving
+                ? "⏳ Sauvegarde en cours…"
+                : waSaved
+                  ? "✅ Configuration sauvegardée en base !"
+                  : "💾 Sauvegarder la configuration"}
             </button>
+
+            <p style={{ fontSize: 11, color: "#333", marginTop: 8, textAlign: "center" }}>
+              Les credentials sont stockés en base de données — persistants après redémarrage.
+            </p>
           </div>
 
           {/* ── ÉTAPE 3 : Tester l'agent ── */}
@@ -379,7 +483,9 @@ WHATSAPP_VERIFY_TOKEN=yitewo_webhook_2024`}
               <div key={f.label}>
                 <label style={lblStyle}>{f.label}</label>
                 <input
-                  type="password" value={f.val} onChange={(e) => f.set(e.target.value)}
+                  type="password"
+                  value={f.val}
+                  onChange={(e) => f.set(e.target.value)}
                   required
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = "#E8380D")}
