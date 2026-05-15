@@ -394,7 +394,7 @@ export default function ParametresPage() {
                   value={waToken}
                   onChange={(e) => setWaToken(e.target.value)}
                   type="password"
-                  placeholder={waConnected ? "••••••••••••••• (déjà enregistré)" : "EAAxxxxxxxxxxxxxx…"}
+                  placeholder={waConnected && !waToken ? "••••••••••••••• (déjà enregistré)" : "EAAxxxxxxxxxxxxxx…"}
                   style={inputStyle}
                 />
               </div>
