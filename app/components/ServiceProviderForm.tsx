@@ -60,6 +60,8 @@ export default function ServiceProviderForm() {
   const [geoSuggestions, setGeoSuggestions] = useState<GeoSuggestion[]>([]);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoSelected, setGeoSelected] = useState(false);
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -85,8 +87,12 @@ export default function ServiceProviderForm() {
     const detectedCity = addr.city || addr.town || addr.municipality || addr.county || "";
     const detectedZone = addr.suburb || addr.neighbourhood || addr.quarter || addr.village || addr.hamlet || addr.road || "";
     setGeoQuery(detectedZone || detectedCity || s.display_name.split(",")[0]);
-    setCity(detectedCity); setZone(detectedZone);
-    setGeoSelected(true); setGeoSuggestions([]);
+    setCity(detectedCity);
+    setZone(detectedZone);
+    setLat(parseFloat(s.lat));
+    setLng(parseFloat(s.lon));
+    setGeoSelected(true);
+    setGeoSuggestions([]);
   };
 
   const shortLabel = (s: GeoSuggestion) => {
@@ -178,6 +184,8 @@ export default function ServiceProviderForm() {
         name, city, email: email || undefined,
         zone: zone || undefined,
         contact,
+        lat: lat ?? undefined,
+        lng: lng ?? undefined,
         message: [
           experience ? `Expérience : ${experience}` : null,
           availability.length ? `Disponibilité : ${availability.join(", ")}` : null,
@@ -345,7 +353,7 @@ export default function ServiceProviderForm() {
           <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             {city && <span style={{ padding: "4px 12px", borderRadius: 99, fontSize: 12, background: "#fff5f3", color: "var(--brand)", border: "1px solid var(--brand)", fontWeight: 600 }}>🏙️ {city}</span>}
             {zone && <span style={{ padding: "4px 12px", borderRadius: 99, fontSize: 12, background: "#f5f5f5", color: "#555", border: "1px solid #e5e5e5", fontWeight: 500 }}>📌 {zone}</span>}
-            <button type="button" onClick={() => { setGeoQuery(""); setCity(""); setZone(""); setGeoSelected(false); }} style={{ padding: "4px 10px", borderRadius: 99, fontSize: 11, background: "none", border: "1px solid #e5e5e5", color: "#aaa", cursor: "pointer" }}>✕ Changer</button>
+            <button type="button" onClick={() => { setGeoQuery(""); setCity(""); setZone(""); setLat(null); setLng(null); setGeoSelected(false); }} style={{ padding: "4px 10px", borderRadius: 99, fontSize: 11, background: "none", border: "1px solid #e5e5e5", color: "#aaa", cursor: "pointer" }}>✕ Changer</button>
           </div>
         )}
       </div>
