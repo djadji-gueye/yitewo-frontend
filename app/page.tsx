@@ -243,7 +243,7 @@ const SECURITY = [
 
 // Bande partenaires : tissus wax colorés / mode sénégalaise
 const IMMERSIVE_BG =
-  "https://images.unsplash.com/photo-1590736969955-71cc94901144?w=1600&q=80&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1552710307-8d1c604d6319?w=1600&q=80&auto=format&fit=crop";
 // CTA final : cosmétiques / produits beauté
 const CTA_BG =
   "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1400&q=80&auto=format&fit=crop";
