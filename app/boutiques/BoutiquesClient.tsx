@@ -179,6 +179,7 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
   const [radius, setRadius] = useState(2); // km
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
+  const VISIBLE_TYPES = ["Marchand", "Restaurant"];
 
   // Haversine distance en km
   const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -219,6 +220,10 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
         return haversine(userLat, userLng, p.lat, p.lng) <= radius;
       })
       : partners.filter((p) => p.city === city);
+
+    // ✅ Ajouter cette ligne — exclut toujours les prestataires
+    list = list.filter((p) => p.type === "Marchand" || p.type === "Restaurant");
+
     if (typeFilter !== "all") list = list.filter((p) => p.type === typeFilter);
     if (filterCat) list = list.filter((p) => p.categories?.some((c) => c.name === filterCat));
     if (search.trim()) {
