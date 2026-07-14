@@ -54,7 +54,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
         <div style={{ fontSize: 52, marginBottom: 16 }}>🔒</div>
         <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 22, marginBottom: 10 }}>Accès refusé</h2>
         <p style={{ color: "#6b6b6b", fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>{error || "Ce lien est invalide ou a expiré."}</p>
-        <Link href="/" style={{ display: "inline-block", background: "#E8380D", color: "#fff", padding: "11px 28px", borderRadius: 99, textDecoration: "none", fontWeight: 700, fontSize: 14 }}>Retour à l'accueil</Link>
+        <Link href="/" style={{ display: "inline-block", background: "#E8380D", color: "#fff", padding: "11px 28px", borderRadius: 99, textDecoration: "none", fontWeight: 700, fontSize: 14 }}>Retour</Link>
       </div>
     </div>
   );
@@ -88,7 +88,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
           style={{ width: 240, flexShrink: 0, background: "#fff", borderRight: "1px solid #f0ebe8", display: "flex", flexDirection: "column", position: "fixed", top: 0, left: 0, bottom: 0 }}>
 
           <button className="portal-close-btn" onClick={() => setMenuOpen(false)}
-            style={{ position: "absolute", top: 12, right: 12, width: 30, height: 30, borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", cursor: "pointer", fontSize: 14, alignItems: "center", justifyContent: "center", color: "#6b6b6b", zIndex: 1 }}>
+            style={{ position: "absolute", top: 12, right: 12, width: 30, height: 30, borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", cursor: "pointer", fontSize: 14, alignItems: "center", justifyContent: "center", display: "flex" }}>
             ✕
           </button>
 
@@ -99,7 +99,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
               <span style={{ fontSize: 10, fontWeight: 600, marginLeft: 8, padding: "2px 8px", borderRadius: 99, background: "#d1fae5", color: "#065f46" }}>Prestataire</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: `linear-gradient(135deg,hsl(${hue},55%,28%),hsl(${(hue + 60) % 360},65%,42%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: `linear-gradient(135deg,hsl(${hue},55%,28%),hsl(${(hue + 60) % 360},65%,42%))` }}>
                 {prestataire.profileImageUrl
                   ? <img src={prestataire.profileImageUrl} alt={prestataire.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <span style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 15, color: "#fff" }}>{initials}</span>}
@@ -117,7 +117,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
               const active = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href}
-                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 4, textDecoration: "none", background: active ? "#fff5f3" : "transparent", color: active ? "#E8380D" : "#6b6b6b", fontWeight: active ? 600 : 400, fontSize: 14, borderLeft: active ? "3px solid #E8380D" : "3px solid transparent", transition: "all 0.18s" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 4, textDecoration: "none", background: active ? "#fff5f3" : "transparent", color: active ? "#E8380D" : "#888", fontWeight: active ? 600 : 400, fontSize: 14, transition: "all 0.18s", borderLeft: active ? "3px solid #E8380D" : "3px solid transparent" }}>
                   <span style={{ fontSize: 16, width: 20, textAlign: "center" }}>{item.icon}</span>
                   {item.label}
                 </Link>
@@ -130,7 +130,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
             <p style={{ fontSize: 11, color: "#aaa", marginBottom: 8, fontWeight: 500 }}>VOTRE CONTACT CLIENT</p>
             <a href={`https://wa.me/${prestataire.contact?.replace(/[\s+]/g, "")}`} target="_blank" rel="noreferrer"
               style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", textDecoration: "none" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.491-2.39-1.477-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.075-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004c-1.025 0-2.031.256-2.91.745L7.04 3.65 3.92 8.765c-.437 1.122-.655 2.315-.655 3.516 0 5.202 4.247 9.45 9.449 9.45 2.529 0 4.881-.997 6.641-2.641 1.76-1.645 2.73-3.891 2.73-6.241-.001-5.202-4.248-9.45-9.449-9.45" /></svg>
               <span style={{ fontSize: 12, color: "#065f46", fontWeight: 600 }}>{prestataire.contact}</span>
             </a>
           </div>
@@ -138,27 +138,6 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
 
         {/* Main */}
         <div className="p-main" style={{ flex: 1, marginLeft: 240, display: "flex", flexDirection: "column", minWidth: 0 }}>
-
-          <header style={{ height: 56, background: "#fff", borderBottom: "1px solid #f0ebe8", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0, position: "sticky", top: 0, zIndex: 30 }}>
-
-            <button className="portal-hamburger" onClick={() => setMenuOpen(true)}
-              style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", cursor: "pointer", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-            </button>
-
-            <p style={{ fontSize: 13, color: "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, margin: "0 8px" }}>
-              Espace prestataire<span style={{ color: "#1a1a1a", fontWeight: 600 }}> · {prestataire.name}</span>
-            </p>
-
-            {/* Statut disponibilité rapide */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, background: "#d1fae5", border: "1px solid #a7f3d0", fontSize: 12, fontWeight: 600, color: "#065f46" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
-              Disponible
-            </div>
-          </header>
-
           <main className="p-content" style={{ flex: 1, padding: "28px", overflowY: "auto", minWidth: 0 }}>
             {children}
           </main>
