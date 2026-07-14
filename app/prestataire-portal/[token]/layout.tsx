@@ -138,26 +138,6 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
 
         {/* Main */}
         <div className="p-main" style={{ flex: 1, marginLeft: 240, display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <header style={{ height: 56, background: "#fff", borderBottom: "1px solid #f0ebe8", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0 }}>
-
-            <button className="portal-hamburger" onClick={() => setMenuOpen(true)}
-              style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #f0ebe8", background: "#fff", cursor: "pointer", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center", display: "none" }}>
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-              <span style={{ width: 16, height: 2, background: "#1a1a1a", borderRadius: 2, display: "block" }} />
-            </button>
-
-            <p style={{ fontSize: 13, color: "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, margin: "0 8px" }}>
-              Espace prestataire<span style={{ color: "#1a1a1a", fontWeight: 600 }}> · {prestataire.name}</span>
-            </p>
-
-            {/* Statut disponibilité rapide */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, background: "#d1fae5", border: "1px solid #a7f3d0", fontSize: 12, fontWeight: 600, color: "#065f46" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
-              Disponible
-            </div>
-          </header>
-
           <main className="p-content" style={{ flex: 1, padding: "28px", overflowY: "auto", minWidth: 0 }}>
             {children}
           </main>
