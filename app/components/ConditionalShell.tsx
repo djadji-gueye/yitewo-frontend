@@ -12,7 +12,8 @@ export default function ConditionalShell({ children }: { children: React.ReactNo
   useEffect(() => { setMounted(true); }, []);
 
   const isDashboard = pathname?.startsWith("/dashboard") ||
-                      pathname?.startsWith("/partner-portal");
+                      pathname?.startsWith("/partner-portal") ||
+                      pathname?.startsWith("/prestataire-portal");
 
   // Avant le montage côté client, on ne rend ni Navbar ni Footer
   // pour éviter le flash sur les pages dashboard
