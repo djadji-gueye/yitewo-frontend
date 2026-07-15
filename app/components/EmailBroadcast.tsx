@@ -36,7 +36,8 @@ export default function EmailBroadcast() {
             const data = await res.json();
             setResult(data);
             setStatus("success");
-        } catch {
+        } catch (err) {
+            console.error("Broadcast error:", err);
             setStatus("error");
         }
     };
