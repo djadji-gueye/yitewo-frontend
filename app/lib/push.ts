@@ -1,5 +1,32 @@
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
+export function isIOS(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent;
+  const iOSDevice = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Macintosh") && "ontouchend" in document);
+  return iOSDevice;
+}
+
+export function isIOSChrome(): boolean {
+  if (typeof window === "undefined") return false;
+  return /CriOS/.test(navigator.userAgent);
+}
+
+export function isStandalone(): boolean {
+  if (typeof window === "undefined") return false;
+  // iOS Safari expose navigator.standalone ; les autres utilisent le media query.
+  return (
+    (window.navigator as any).standalone === true ||
+    window.matchMedia?.("(display-mode: standalone)").matches === true
+  );
+}
+
+// true = doit d'abord être installée sur l'écran d'accueil (via Safari) avant que
+// Notification/PushManager fonctionnent réellement.
+export function needsIOSInstallFirst(): boolean {
+  return isIOS() && !isStandalone();
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -9,7 +36,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-export type PushSupport = "unsupported" | "denied" | "default" | "granted" | "subscribed";
+export type PushSupport = "unsupported" | "ios-needs-install" | "denied" | "default" | "granted" | "subscribed";
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return null;
@@ -21,6 +48,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 }
 
 export async function getPushStatus(): Promise<PushSupport> {
+  if (needsIOSInstallFirst()) return "ios-needs-install";
   if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
     return "unsupported";
   }

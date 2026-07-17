@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush, registerServiceWorker, PushSupport } from "@/lib/push";
+import IOSInstallHint from "./IOSInstallHint";
 
 interface Props {
   kind: "partner" | "admin";
@@ -15,6 +16,7 @@ export default function PushNotificationButton({ kind, token, adminJwt, label, d
   const [status, setStatus] = useState<PushSupport>("default");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [showIOSHint, setShowIOSHint] = useState(false);
 
   useEffect(() => {
     registerServiceWorker();
@@ -24,6 +26,10 @@ export default function PushNotificationButton({ kind, token, adminJwt, label, d
   if (status === "unsupported") return null; // pas de bruit visuel si non supporté
 
   const handleClick = async () => {
+    if (status === "ios-needs-install") {
+      setShowIOSHint(true);
+      return;
+    }
     setError("");
     setBusy(true);
     try {
@@ -42,6 +48,7 @@ export default function PushNotificationButton({ kind, token, adminJwt, label, d
 
   const subscribed = status === "subscribed";
   const denied = status === "denied";
+  const needsInstall = status === "ios-needs-install";
 
   const color = dark ? "#fff" : "#1a1a1a";
   const mutedBg = dark ? "rgba(255,255,255,0.06)" : "#f7f4f2";
@@ -55,6 +62,8 @@ export default function PushNotificationButton({ kind, token, adminJwt, label, d
         title={
           denied
             ? "Notifications bloquées — active-les dans les réglages du navigateur"
+            : needsInstall
+            ? "Installe d'abord Yitewo sur ton écran d'accueil"
             : subscribed
             ? "Notifications activées sur cet appareil"
             : "Activer les notifications de commandes/missions"
@@ -70,14 +79,15 @@ export default function PushNotificationButton({ kind, token, adminJwt, label, d
           whiteSpace: "nowrap",
         }}
       >
-        <span>{busy ? "⏳" : subscribed ? "🔔" : "🔕"}</span>
-        {subscribed ? "Notifications activées" : busy ? "…" : "Activer les notifications"}
+        <span>{busy ? "⏳" : subscribed ? "🔔" : needsInstall ? "📲" : "🔕"}</span>
+        {subscribed ? "Notifications activées" : needsInstall ? "Installer l'app" : busy ? "…" : "Activer les notifications"}
       </button>
       {error && (
         <p style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fee2e2", color: "#991b1b", fontSize: 11, padding: "6px 10px", borderRadius: 8, whiteSpace: "nowrap", zIndex: 50 }}>
           {error}
         </p>
       )}
+      {showIOSHint && <IOSInstallHint onClose={() => setShowIOSHint(false)} />}
     </div>
   );
 }
