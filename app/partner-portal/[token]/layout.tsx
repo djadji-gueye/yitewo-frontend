@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
+import PushNotificationButton from "@/components/PushNotificationButton";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -149,6 +150,8 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
             <p style={{ fontSize: 13, color: "#aaa", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, margin: "0 8px" }}>
               Espace partenaire<span style={{ color: "#1a1a1a", fontWeight: 600 }}> · {partner.name}</span>
             </p>
+
+            <PushNotificationButton kind="partner" token={token} label={partner.name} />
 
             <a href={`/shop/${partner.slug}`} target="_blank" rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, background: "#fff5f3", border: "1px solid #fdd0c5", color: "#E8380D", textDecoration: "none", fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>

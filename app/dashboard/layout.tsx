@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import PushNotificationButton from "@/components/PushNotificationButton";
 
 const NAV = [
   { href: "/dashboard", icon: "⊞", label: "Vue d'ensemble" },
@@ -220,6 +221,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           display: "flex", alignItems: "center", justifyContent: "flex-end",
           padding: "0 24px", flexShrink: 0, gap: 10,
         }}>
+          <PushNotificationButton kind="admin" adminJwt={typeof window !== "undefined" ? localStorage.getItem("yitewo_token") || undefined : undefined} label={admin?.name} dark />
+
           {unread > 0 && (
             <div style={{
               display: "flex", alignItems: "center", gap: 6,

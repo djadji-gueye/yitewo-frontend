@@ -90,10 +90,16 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
 
+  manifest: "/manifest.json",
+
   // Vérification Google Search Console
   verification: {
     google: "UEVzAWO3HM2pmDyvvd1V26HKNLCpBnO2iQqwMrQJmZA",
   },
+};
+
+export const viewport = {
+  themeColor: "#E8380D",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

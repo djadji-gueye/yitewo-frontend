@@ -121,7 +121,7 @@ export default function PartnerForm({ forcedType }: { forcedType?: string } = {}
     setSelectedCats((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
 
   const handleSubmit = async () => {
-    if (!name || !city || !contact) return;
+    if (!name || !city || !contact || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return;
     setStatus("loading");
     try {
       await createPartner({
