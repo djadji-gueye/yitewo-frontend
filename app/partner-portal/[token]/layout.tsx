@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
 import PartnerPortalLayoutClient from "./PartnerPortalLayoutClient";
 
-// Rendu côté serveur -> le <link rel="manifest"> correct est déjà dans le HTML
-// au premier chargement (pas de dépendance à un useEffect côté client).
-export const metadata: Metadata = {
-  manifest: "/manifest-partner.json",
-};
+// Le manifest dynamique (avec le token dans start_url) est généré par
+// ./manifest.ts, co-localisé dans ce même segment de route — Next.js le
+// détecte et pose le <link rel="manifest"> automatiquement.
 
 export default function PartnerPortalLayout({ children }: { children: React.ReactNode }) {
   return <PartnerPortalLayoutClient>{children}</PartnerPortalLayoutClient>;
