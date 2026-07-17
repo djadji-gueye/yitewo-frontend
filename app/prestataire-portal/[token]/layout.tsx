@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import ManifestSwitcher from "@/components/ManifestSwitcher";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -25,6 +26,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
         if (data.type !== "Prestataire") throw new Error("Type invalide");
         setPrestataire(data);
         setChecking(false);
+        try { localStorage.setItem("yitewo_last_prestataire_token", token); } catch {}
       })
       .catch(() => { setError("Lien invalide ou expiré"); setChecking(false); });
   }, [token]);
@@ -65,6 +67,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
 
   return (
     <>
+      <ManifestSwitcher href="/manifest-prestataire.json" />
       <style>{`
         .portal-overlay { display: none }
         .portal-hamburger { display: none !important }

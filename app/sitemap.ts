@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const res = await fetch(`${API}/partners/public/shop`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) throw new Error('Failed to fetch partners');

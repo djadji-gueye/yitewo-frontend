@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import ManifestSwitcher from "@/components/ManifestSwitcher";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -21,7 +22,13 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
     if (!token) { setError("Token manquant"); setChecking(false); return; }
     fetch(`${BASE}/partners/portal/${token}`)
       .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
-      .then((data) => { setPartner(data); setChecking(false); })
+      .then((data) => {
+        setPartner(data);
+        setChecking(false);
+        // Pour que l'app installée (start_url générique /partner-portal) sache
+        // où rediriger l'utilisateur.
+        try { localStorage.setItem("yitewo_last_partner_token", token); } catch {}
+      })
       .catch(() => { setError("Lien invalide ou expiré"); setChecking(false); });
   }, [token]);
 
@@ -64,6 +71,7 @@ export default function PartnerPortalLayout({ children }: { children: React.Reac
 
   return (
     <>
+      <ManifestSwitcher href="/manifest-partner.json" />
       <style>{`
         .portal-overlay { display: none }
         .portal-hamburger { display: none !important }

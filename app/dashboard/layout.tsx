@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import ManifestSwitcher from "@/components/ManifestSwitcher";
 
 const NAV = [
   { href: "/dashboard", icon: "⊞", label: "Vue d'ensemble" },
@@ -97,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── Page login : rendu sans sidebar ────────────────────────
   if (isLoginPage) {
-    return <>{children}</>;
+    return <><ManifestSwitcher href="/manifest-dashboard.json" />{children}</>;
   }
 
   // ── Vérification en cours ────────────────────────────────────
@@ -131,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       display: "flex", height: "100vh", background: "#0d0d14",
       fontFamily: "DM Sans, sans-serif", overflow: "hidden",
     }}>
-
+      <ManifestSwitcher href="/manifest-dashboard.json" />
       {/* ── Sidebar ── */}
       <aside style={{
         width: 240, flexShrink: 0, background: "#13131f",

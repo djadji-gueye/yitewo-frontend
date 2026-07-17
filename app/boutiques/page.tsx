@@ -7,7 +7,10 @@ const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
 async function getMapPartners() {
   try {
-    const res = await fetch(`${BASE}/partners/public/map`, { next: { revalidate: 60 } });
+    const res = await fetch(`${BASE}/partners/public/map`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!res.ok) return [];
     return res.json();
   } catch { return []; }
