@@ -33,7 +33,18 @@ self.addEventListener("push", (event) => {
     vibrate: [100, 50, 100],
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  // Badging API : dispo aussi côté Service Worker (iOS 16.4+, Android Chrome),
+  // donc ça marche même si l'app n'est pas ouverte au moment du push.
+  const badgePromise =
+    typeof payload.badgeCount === "number" && "setAppBadge" in self.navigator
+      ? (payload.badgeCount > 0
+          ? self.navigator.setAppBadge(payload.badgeCount)
+          : self.navigator.clearAppBadge())
+      : Promise.resolve();
+
+  event.waitUntil(
+    Promise.all([self.registration.showNotification(title, options), badgePromise.catch(() => null)]),
+  );
 });
 
 // ── Clic sur la notification ────────────────────────────────

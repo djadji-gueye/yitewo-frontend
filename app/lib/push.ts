@@ -115,6 +115,25 @@ export async function subscribeToPush({ kind, token, adminJwt, label }: Subscrib
   return { ok: true };
 }
 
+export async function syncBadgeCount(kind: "partner" | "admin", tokenOrJwt?: string): Promise<void> {
+  if (typeof window === "undefined" || !("setAppBadge" in navigator)) return;
+  try {
+    const url =
+      kind === "partner"
+        ? `${BASE}/push/badge/partner?token=${encodeURIComponent(tokenOrJwt || "")}`
+        : `${BASE}/push/badge/admin`;
+    const res = await fetch(url, {
+      headers: kind === "admin" && tokenOrJwt ? { Authorization: `Bearer ${tokenOrJwt}` } : {},
+    });
+    if (!res.ok) return;
+    const { count } = await res.json();
+    if (count > 0) await (navigator as any).setAppBadge(count);
+    else await (navigator as any).clearAppBadge?.();
+  } catch {
+    // silencieux : le badge n'est qu'un plus, pas une fonctionnalité critique
+  }
+}
+
 export async function unsubscribeFromPush(): Promise<void> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
   const reg = await navigator.serviceWorker.getRegistration();

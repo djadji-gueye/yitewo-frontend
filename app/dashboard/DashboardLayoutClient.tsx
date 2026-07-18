@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import { syncBadgeCount } from "@/lib/push";
 
 const NAV = [
   { href: "/dashboard", icon: "⊞", label: "Vue d'ensemble" },
@@ -59,6 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         clearTimeout(timeout);
         setAdmin(data);
         setChecking(false);
+        syncBadgeCount("admin", token);
       })
       .catch(() => {
         clearTimeout(timeout);

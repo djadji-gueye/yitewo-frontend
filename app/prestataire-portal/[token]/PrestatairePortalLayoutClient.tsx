@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import PushNotificationButton from "@/components/PushNotificationButton";
+import { syncBadgeCount } from "@/lib/push";
 
 const BASE = process.env.NEXT_PUBLIC_URL_PROD || "http://localhost:3003";
 
@@ -26,6 +27,7 @@ export default function PrestatairePotalLayout({ children }: { children: React.R
         setPrestataire(data);
         setChecking(false);
         try { localStorage.setItem("yitewo_last_prestataire_token", token); } catch {}
+        syncBadgeCount("partner", token);
       })
       .catch(() => { setError("Lien invalide ou expiré"); setChecking(false); });
   }, [token]);
