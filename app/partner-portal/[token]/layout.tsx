@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import PartnerPortalLayoutClient from "./PartnerPortalLayoutClient";
 
-// Le manifest dynamique (avec le token dans start_url) est généré par
-// ./manifest.ts, co-localisé dans ce même segment de route — Next.js le
-// détecte et pose le <link rel="manifest"> automatiquement.
+// generateMetadata (contrairement à manifest.ts) supporte officiellement les
+// params de route dynamique — c'est la bonne façon de pointer vers un manifest
+// propre à ce token, servi par ./manifest.webmanifest/route.ts.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  return { manifest: `/partner-portal/${token}/manifest.webmanifest` };
+}
 
 export default function PartnerPortalLayout({ children }: { children: React.ReactNode }) {
   return <PartnerPortalLayoutClient>{children}</PartnerPortalLayoutClient>;

@@ -1,18 +1,15 @@
-import type { MetadataRoute } from "next";
+import { NextResponse } from "next/server";
 
-export default async function manifest({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}): Promise<MetadataRoute.Manifest> {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ token: string }> },
+) {
   const { token } = await params;
 
-  return {
+  const manifest = {
     name: "Yitewo Partenaire",
     short_name: "Yitewo Pro",
     description: "Espace partenaire Yitewo — commandes, produits, stats",
-    // Le token est ici, en dur : l'app installée rouvre directement le bon espace,
-    // sans dépendre du localStorage (isolé entre Safari et l'app sur iOS).
     start_url: `/partner-portal/${token}`,
     id: `/partner-portal/${token}`,
     display: "standalone",
@@ -26,4 +23,12 @@ export default async function manifest({
       { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
+
+  return NextResponse.json(manifest, {
+    headers: {
+      "Content-Type": "application/manifest+json",
+      // Le manifest doit rester spécifique à ce token — pas de cache partagé entre partenaires.
+      "Cache-Control": "public, max-age=300",
+    },
+  });
 }

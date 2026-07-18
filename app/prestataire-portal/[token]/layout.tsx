@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import PrestatairePortalLayoutClient from "./PrestatairePortalLayoutClient";
 
-// Manifest dynamique généré par ./manifest.ts (token dans start_url), détecté
-// automatiquement par Next.js pour ce segment de route.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  return { manifest: `/prestataire-portal/${token}/manifest.webmanifest` };
+}
 
 export default function PrestatairePortalLayout({ children }: { children: React.ReactNode }) {
   return <PrestatairePortalLayoutClient>{children}</PrestatairePortalLayoutClient>;
