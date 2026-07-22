@@ -12,7 +12,7 @@ const SERVICES = [
   { name: "Plombier", icon: "🚰", desc: "Fuites, robinetterie, sanitaire, tuyauterie", color: "#0f766e", bg: "#ccfbf1", grad: "linear-gradient(135deg,#134e4a,#0f9488)", tag: null },
   { name: "Électricien", icon: "💡", desc: "Câblage, pannes électriques, installation", color: "#b45309", bg: "#fef3c7", grad: "linear-gradient(135deg,#78350f,#d97706)", tag: null },
   { name: "Climatisation", icon: "❄️", desc: "Installation, entretien et dépannage clim", color: "#6d28d9", bg: "#ede9fe", grad: "linear-gradient(135deg,#4c1d95,#7c3aed)", tag: null },
-  { name: "Bricoleur", icon: "🔧", desc: "Petits travaux, montage meuble, réparations", color: "#065f46", bg: "#d1fae5", grad: "linear-gradient(135deg,#064e3b,#059669)", tag: null },
+  { name: "Coatch sportif", icon: "🏋️", desc: "Coaching sportif personnalisé à domicile", color: "#065f46", bg: "#d1fae5", grad: "linear-gradient(135deg,#064e3b,#059669)", tag: null },
   { name: "Garde d'enfants", icon: "👶", desc: "Baby-sitter expérimentée à domicile", color: "#be185d", bg: "#fce7f3", grad: "linear-gradient(135deg,#831843,#db2777)", tag: null },
   { name: "Jardinage", icon: "🌿", desc: "Entretien jardin, taille haies, désherbage", color: "#15803d", bg: "#dcfce7", grad: "linear-gradient(135deg,#14532d,#16a34a)", tag: null },
   { name: "Coiffeur à domicile", icon: "✂️", desc: "Coupe, coiffure, tresses à domicile", color: "#c2410c", bg: "#ffedd5", grad: "linear-gradient(135deg,#7c2d12,#ea580c)", tag: "Nouveau" },
@@ -25,7 +25,7 @@ const SERVICES = [
 const SERVICE_ICONS: Record<string, string> = {
   "Ménage": "🧹", "Plomberie": "🚰", "Plombier": "🚰", "Livreur": "🚴",
   "Électricité": "⚡", "Électricien": "💡", "Climatisation": "❄️",
-  "Bricolage": "🛠️", "Bricoleur": "🔧", "Garde": "👶", "Jardinage": "🌿",
+  "Bricolage": "🛠️", "Coatch sportif": "🏋️", "Garde": "👶", "Jardinage": "🌿",
   "Coiffure": "✂️", "Déménagement": "📦", "Cours": "📚",
   "Informatique": "💻", "Peinture": "🖌️", "Maçonnerie": "🧱",
   "Sécurité": "🛡️", "Massage": "💆", "Cuisine": "🍽️",
@@ -36,6 +36,10 @@ interface Provider {
   id: string; name: string; city: string; zone?: string;
   contact: string; serviceCategories?: string[];
   message?: string; profileImageUrl?: string;
+  // — Prévu pour la fiche détail prestataire —
+  workImageUrl?: string; // photo(s) terrain
+  rating?: number; // note moyenne (futur système d'avis)
+  reviewsCount?: number; // nombre d'avis (futur système d'avis)
   lat?: number; lng?: number;
 }
 
@@ -43,6 +47,7 @@ const parseMessage = (msg?: string) => ({
   experience: msg?.match(/Exp[ée]rience\s*:\s*([^|]+)/i)?.[1]?.trim(),
   disponibilite: msg?.match(/Disponibilit[ée]\s*:\s*([^|]+)/i)?.[1]?.trim(),
   bio: msg?.match(/[Àa]\s*propos\s*:\s*(.+?)(?:\s*\|.*)?$/i)?.[1]?.trim(),
+  workImageUrl: msg?.match(/Photo\s*terrain\s*:\s*(\S+)/i)?.[1]?.trim(),
 });
 
 function getServiceIcon(service: string, fallback?: string) {
@@ -87,6 +92,8 @@ export default function ServicesPage() {
   const [userLng, setUserLng] = useState<number | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [radius, setRadius] = useState(5);
+  const [selectedProvider, setSelectedProvider] = useState<(Provider & { bio?: string; experience?: string; disponibilite?: string; workImageUrl?: string }) | null>(null);
+  const [providerModalOpen, setProviderModalOpen] = useState(false);
 
   // — Offres tab state —
   const [offres, setOffres] = useState<any[]>([]);
@@ -115,6 +122,12 @@ export default function ServicesPage() {
 
   const openForm = (s: typeof SERVICES[0]) => { setService(s); setDrawerOpen(true); setStep("form"); };
   const closeDrawer = () => { setDrawerOpen(false); setTimeout(() => { if (step !== "success") setStep("list"); }, 300); };
+
+  const openProviderModal = (provider: Provider) => {
+    setSelectedProvider({ ...provider, ...parseMessage(provider.message) });
+    setProviderModalOpen(true);
+  };
+  const closeProviderModal = () => { setProviderModalOpen(false); setTimeout(() => setSelectedProvider(null), 300); };
 
   const handleSend = async () => {
     if (!service || !location.quarter) return;
@@ -320,7 +333,7 @@ export default function ServicesPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
                 {filteredProviders.map((p) => {
                   const parsed = parseMessage(p.message);
-                  return <ProviderCard key={p.id} provider={p} {...parsed} />;
+                  return <ProviderCard key={p.id} provider={p} {...parsed} onClick={() => openProviderModal(p)} />;
                 })}
               </div>
             )}
@@ -508,17 +521,122 @@ export default function ServicesPage() {
           </div>
         )}
       </div>
+
+      {/* MODALE DÉTAIL PRESTATAIRE */}
+      <ProviderModal provider={selectedProvider} open={providerModalOpen} onClose={closeProviderModal} />
     </div>
   );
 }
 
-function ProviderCard({ provider, bio, experience, disponibilite }: { provider: Provider; bio?: string; experience?: string; disponibilite?: string }) {
+function ProviderModal({ provider, open, onClose }: { provider: (Provider & { bio?: string; experience?: string; disponibilite?: string }) | null; open: boolean; onClose: () => void }) {
+  if (!provider) return null;
   const initials = provider.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
   const hue = [...provider.name].reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0) % 360;
   const hue2 = (hue + 70) % 360;
 
   return (
-    <div className="product-card" style={{ background: "#fff", borderRadius: 20, border: "1px solid var(--border)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 60, opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.3s", backdropFilter: "blur(2px)" }} />
+      <div style={{ position: "fixed", top: "50%", left: "50%", width: "min(520px, 92vw)", maxHeight: "88vh", background: "#fff", borderRadius: 22, zIndex: 70, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", transform: open ? "translate(-50%,-50%) scale(1)" : "translate(-50%,-50%) scale(0.94)", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.25s" }}>
+
+        {/* En-tête avec photo de profil */}
+        <div style={{ position: "relative", height: 190, flexShrink: 0, overflow: "hidden" }}>
+          {provider.profileImageUrl ? (
+            <img src={provider.profileImageUrl} alt={provider.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: `linear-gradient(145deg, hsl(${hue},55%,28%), hsl(${hue2},65%,42%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 56, color: "rgba(255,255,255,0.85)" }}>{initials}</span>
+            </div>
+          )}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.68) 100%)", pointerEvents: "none" }} />
+          <button onClick={onClose} style={{ position: "absolute", top: 12, right: 12, width: 34, height: 34, borderRadius: 99, background: "rgba(255,255,255,0.92)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16, color: "var(--text)" }}>✕</button>
+          <span style={{ position: "absolute", top: 12, left: 12, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "rgba(255,255,255,0.92)", color: "#059669" }}>✓ Vérifié</span>
+          <div style={{ position: "absolute", bottom: 14, left: 20, right: 20 }}>
+            <p style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 19, color: "#fff", marginBottom: 3, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{provider.name}</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.88)", fontWeight: 500 }}>📍 {provider.zone ? `${provider.zone}, ` : ""}{provider.city}</p>
+          </div>
+        </div>
+
+        {/* Contenu scrollable */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 18 }}>
+
+          {/* Catégories */}
+          {provider.serviceCategories && provider.serviceCategories.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {provider.serviceCategories.map((c: string) => (
+                <span key={c} style={{ fontSize: 11, fontWeight: 600, padding: "4px 11px", borderRadius: 99, background: "#fff5f3", color: "#E8380D", border: "1px solid #fdd0c5" }}>{c}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Badges expérience / disponibilité */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {provider.experience && (
+              <span style={{ fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 99, background: "#ede9fe", color: "#6d28d9", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                🎓 {provider.experience} d&apos;expérience
+              </span>
+            )}
+            {provider.disponibilite && provider.disponibilite.split(",").map((d: string) => d.trim()).filter(Boolean).map((d: string) => (
+              <span key={d} style={{ fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 99, background: "#fef3c7", color: "#b45309" }}>🕐 {d}</span>
+            ))}
+          </div>
+
+          {/* À propos */}
+          {provider.bio && (
+            <div>
+              <p style={sTitle}>À propos</p>
+              <p style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{provider.bio}</p>
+            </div>
+          )}
+
+          {/* Photos terrain */}
+          <div>
+            <p style={sTitle}>📸 Photos</p>
+            {(provider.profileImageUrl || provider.workImageUrl) ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+                {provider.profileImageUrl && (
+                  <img src={provider.profileImageUrl} alt="Profil" style={{ width: "100%", height: 110, objectFit: "cover", borderRadius: 12, border: "1px solid var(--border)" }} />
+                )}
+                {provider.workImageUrl && (
+                  <img src={provider.workImageUrl} alt="Photo terrain" style={{ width: "100%", height: 110, objectFit: "cover", borderRadius: 12, border: "1px solid var(--border)" }} />
+                )}
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>Aucune photo terrain pour le moment.</p>
+            )}
+          </div>
+
+          {/* Avis clients — emplacement prévu pour le futur système de notation */}
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "14px 16px" }}>
+            <p style={sTitle}>⭐ Avis clients</p>
+            {provider.rating ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <StarStatic n={Math.round(provider.rating)} />
+                <span style={{ fontSize: 12, color: "var(--muted)" }}>{provider.rating.toFixed(1)} · {provider.reviewsCount ?? 0} avis</span>
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: "var(--muted)" }}>Système de notation bientôt disponible.</p>
+            )}
+          </div>
+
+          {/* Contact — désactivé pour l'instant (voir décision produit) */}
+          {/* <a href={`https://wa.me/${provider.contact?.replace(/[\s+]/g, "")}`} target="_blank" rel="noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "12px 16px", borderRadius: 11, background: "#25D366", color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+            Contacter sur WhatsApp
+          </a> */}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProviderCard({ provider, bio, experience, disponibilite, onClick }: { provider: Provider; bio?: string; experience?: string; disponibilite?: string; onClick?: () => void }) {
+  const initials = provider.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+  const hue = [...provider.name].reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0) % 360;
+  const hue2 = (hue + 70) % 360;
+
+  return (
+    <div onClick={onClick} className="product-card" style={{ background: "#fff", borderRadius: 20, border: "1px solid var(--border)", overflow: "hidden", display: "flex", flexDirection: "column", cursor: onClick ? "pointer" : "default" }}>
       <div style={{ position: "relative", height: 200, flexShrink: 0, overflow: "hidden" }}>
         {provider.profileImageUrl ? (
           <img src={provider.profileImageUrl} alt={provider.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
@@ -556,11 +674,11 @@ function ProviderCard({ provider, bio, experience, disponibilite }: { provider: 
           </div>
         )}
         {bio && <p style={{ fontSize: 12, color: "#555", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{bio}</p>}
-        <a href={`https://wa.me/${provider.contact?.replace(/[\s+]/g, "")}`} target="_blank" rel="noreferrer"
+        {/* <a href={`https://wa.me/${provider.contact?.replace(/[\s+]/g, "")}`} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "10px 16px", borderRadius: 11, background: "#25D366", color: "#fff", fontFamily: "Syne", fontWeight: 700, fontSize: 12, textDecoration: "none", marginTop: "auto" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
           Contacter sur WhatsApp
-        </a>
+        </a> */}
       </div>
     </div>
   );

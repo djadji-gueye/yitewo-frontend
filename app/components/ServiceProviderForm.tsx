@@ -10,6 +10,7 @@ const SERVICE_CATEGORIES = [
   "Électricité",
   "Climatisation",
   "Bricolage / Réparations",
+  "Coatch sportif",
   "Garde d'enfants",
   "Jardinage",
   "Coiffure à domicile",
