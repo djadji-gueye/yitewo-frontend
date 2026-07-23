@@ -311,7 +311,7 @@ export default function HomePage() {
 
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 18, lineHeight: 1.75, marginBottom: 40, maxWidth: 540 }}>
             Boutiques de quartier, salons de coiffure, restaurants locaux —
-            commandez sans application, payez à la livraison, partout au Sénégal.
+            commandez depuis notre application installable, sans passer par un store, payez à la livraison, partout au Sénégal.
           </p>
 
           {/* Catégories rapides hero */}

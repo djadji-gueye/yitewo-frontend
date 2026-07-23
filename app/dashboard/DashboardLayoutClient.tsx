@@ -23,8 +23,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [admin, setAdmin] = useState<any>(null);
   const [checking, setChecking] = useState(true);
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isLoginPage = pathname === "/dashboard/login";
+
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   // ── Auth check ──────────────────────────────────────────────
   useEffect(() => {
@@ -129,18 +132,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── Dashboard avec sidebar ──────────────────────────────────
   return (
+    <>
+      <style>{`
+        .adm-overlay { display: none }
+        .adm-hamburger { display: none !important }
+        .adm-close-btn { display: none !important }
+        @media (max-width: 768px) {
+          .adm-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 60 !important; }
+          .adm-sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.4); }
+          .adm-main { margin-left: 0 !important; }
+          .adm-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 55; backdrop-filter: blur(2px); }
+          .adm-hamburger { display: flex !important }
+          .adm-close-btn { display: flex !important }
+          .adm-content { padding: 16px !important; }
+        }
+      `}</style>
     <div style={{
       display: "flex", height: "100vh", background: "#0d0d14",
       fontFamily: "DM Sans, sans-serif", overflow: "hidden",
     }}>
 
+      {menuOpen && <div className="adm-overlay" onClick={() => setMenuOpen(false)} />}
+
       {/* ── Sidebar ── */}
-      <aside style={{
+      <aside className={`adm-sidebar${menuOpen ? " open" : ""}`} style={{
         width: 240, flexShrink: 0, background: "#13131f",
         borderRight: "1px solid rgba(255,255,255,0.06)",
         display: "flex", flexDirection: "column",
         position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50,
       }}>
+        <button className="adm-close-btn" onClick={() => setMenuOpen(false)}
+          style={{ position: "absolute", top: 12, right: 12, width: 30, height: 30, borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", cursor: "pointer", fontSize: 14, color: "#888", alignItems: "center", justifyContent: "center", display: "flex" }}>
+          ✕
+        </button>
+
         {/* Logo */}
         <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <Link href="/dashboard" style={{ textDecoration: "none" }}>
@@ -158,7 +183,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
-              <Link key={item.href} href={item.href} style={{
+              <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px", borderRadius: 10, marginBottom: 2,
                 textDecoration: "none",
@@ -214,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ── Main ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: 240, minWidth: 0 }}>
+      <div className="adm-main" style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: 240, minWidth: 0 }}>
 
         {/* Topbar */}
         <header style={{
@@ -223,6 +248,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           display: "flex", alignItems: "center", justifyContent: "flex-end",
           padding: "0 24px", flexShrink: 0, gap: 10,
         }}>
+          <button className="adm-hamburger" onClick={() => setMenuOpen(true)}
+            style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", cursor: "pointer", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: "auto" }}>
+            <span style={{ width: 16, height: 2, background: "#fff", borderRadius: 2, display: "block" }} />
+            <span style={{ width: 16, height: 2, background: "#fff", borderRadius: 2, display: "block" }} />
+            <span style={{ width: 16, height: 2, background: "#fff", borderRadius: 2, display: "block" }} />
+          </button>
+
           <PushNotificationButton kind="admin" adminJwt={typeof window !== "undefined" ? localStorage.getItem("yitewo_token") || undefined : undefined} label={admin?.name} dark />
 
           {unread > 0 && (
@@ -250,10 +282,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content */}
-        <main style={{ flex: 1, overflowY: "auto", background: "#0d0d14" }}>
+        <main className="adm-content" style={{ flex: 1, overflowY: "auto", background: "#0d0d14" }}>
           {children}
         </main>
       </div>
     </div>
+    </>
   );
 }
