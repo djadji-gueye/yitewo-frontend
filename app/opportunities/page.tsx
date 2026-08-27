@@ -48,7 +48,7 @@ function OpportunitiesContent() {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
   const [city, setCity] = useState(searchParams.get("city") || "");
-  const [source, setSource] = useState(searchParams.get("source") || ""); // "external" | "internal" | ""
+  const [source, setSource] = useState(searchParams.get("source") || "all"); // "external" | "internal" | "all"
   const [page, setPage] = useState(Number(searchParams.get("page") || 1));
   const [searchInput, setSearchInput] = useState(search);
 
@@ -61,6 +61,7 @@ function OpportunitiesContent() {
       if (category) params.set("category", category);
       if (city) params.set("city", city);
       if (search) params.set("search", search);
+      // Ne passe le filtre isExternal que si source n'est pas "all"
       if (source === "external") params.set("isExternal", "true");
       if (source === "internal") params.set("isExternal", "false");
 
@@ -90,11 +91,11 @@ function OpportunitiesContent() {
   };
 
   const clearFilters = () => {
-    setCategory(""); setCity(""); setSource("");
+    setCategory(""); setCity(""); setSource("all");
     setSearch(""); setSearchInput(""); setPage(1);
   };
 
-  const hasFilters = category || city || source || search;
+  const hasFilters = category || city || source !== "all" || search;
   const items: any[] = data?.items || [];
   const totalPages: number = data?.totalPages || 0;
   const total: number = data?.total || 0;
@@ -224,7 +225,7 @@ function OpportunitiesContent() {
             <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Source</span>
             <div style={{ display: "flex", gap: 6 }}>
               {[
-                { val: "", label: "Toutes" },
+                { val: "all", label: "✨ Toutes" },
                 { val: "internal", label: "✍️ Yitewo" },
                 { val: "external", label: "🔗 Externes" },
               ].map((s) => (
