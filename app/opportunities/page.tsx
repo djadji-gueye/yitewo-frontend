@@ -155,7 +155,7 @@ function OpportunitiesContent() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Rechercher une opportunité…"
-              style={{ width: "100%", padding: "13px 120px 13px 46px", borderRadius: 99, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 14, outline: "none", backdropFilter: "blur(8px)" }}
+              style={{ width: "100%", padding: "13px 120px 13px 46px", borderRadius: 99, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 14, outline: "none" }}
             />
             <button onClick={handleSearch} style={{
               position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)",
@@ -226,7 +226,7 @@ function OpportunitiesContent() {
               {[
                 { val: "", label: "Toutes" },
                 { val: "internal", label: "✍️ Yitewo" },
-                //   { val: "external", label: "🔗 Externes" },
+                { val: "external", label: "🔗 Externes" },
               ].map((s) => (
                 <button key={s.val} onClick={() => applyFilter("source", s.val)} style={filterPill(source === s.val)}>
                   {s.label}
@@ -327,7 +327,7 @@ function OpportunitiesContent() {
                         {meta.icon} {meta.label}
                       </span>
                       {opp.badge && (
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: opp.badge === "Urgent" ? "#fee2e2" : "#d1fae5", color: opp.badge === "Urgent" ? "#b91c1c" : "#065f46" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: opp.badge === "Urgent" ? "#fee2e2" : "#d1fae5", color: opp.badge === "Urgent" ? "#991b1b" : "#065f46" }}>
                           {opp.badge === "Urgent" ? "🔴" : "🟢"} {opp.badge}
                         </span>
                       )}
