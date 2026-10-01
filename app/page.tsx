@@ -118,7 +118,7 @@ const FEATURED_SHOPS = [
 // ── Données générales ─────────────────────────────────────────────────────────
 const STATS = [
   { value: "14", unit: "régions", label: "couvertes au Sénégal" },
-  { value: "500+", unit: "boutiques", label: "partenaires actifs" },
+  { value: "100+", unit: "boutiques", label: "partenaires actifs" },
   { value: "24h", unit: "activation", label: "après inscription partenaire" },
   { value: "0%", unit: "commission", label: "au lancement" },
 ];

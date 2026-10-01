@@ -29,7 +29,7 @@ export default function BusinessListingClient({ business }: { business: any }) {
         {business.phone && <p style={{ marginBottom: 8 }}>☎️ {business.phone}</p>}
         {business.website && <p style={{ marginBottom: 20 }}><a href={business.website} target="_blank" rel="noreferrer">Voir le site web</a></p>}
         <p style={{ color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-          Cette fiche est référencée sur Yitewo à partir de données OpenStreetMap. Le propriétaire peut demander sa validation.
+          Cette fiche est référencée sur Yitewo. Le propriétaire peut demander sa validation.
         </p>
         <button onClick={claim} disabled={loading || business.isClaimed} style={{ border: 0, borderRadius: 10, padding: "12px 18px", background: "var(--brand)", color: "#fff", fontWeight: 700, cursor: loading ? "wait" : "pointer" }}>
           {business.isClaimed ? "Demande déjà envoyée" : loading ? "Envoi…" : "Revendiquer cette fiche"}

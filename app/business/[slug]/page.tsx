@@ -18,9 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const business = await getJson(`/businesses/slug/${encodeURIComponent(slug)}`);
   return business
     ? {
-        title: `${business.name} — Commerce référencé sur Yitewo`,
-        description: `${business.name} à ${business.city}. Fiche référencée sur Yitewo.`,
-      }
+      title: `${business.name} — Commerce référencé sur Yitewo`,
+      description: `${business.name} à ${business.city}. Fiche référencée sur Yitewo.`,
+    }
     : { title: "Commerce Yitewo" };
 }
 
@@ -64,7 +64,7 @@ export default async function BusinessListingPage({ params }: { params: Promise<
           )}
 
           <p style={{ color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-            Cette fiche est référencée sur Yitewo à partir de données OpenStreetMap. Le propriétaire peut demander sa validation.
+            Cette fiche est référencée sur Yitewo. Le propriétaire peut demander sa validation.
           </p>
 
           <a

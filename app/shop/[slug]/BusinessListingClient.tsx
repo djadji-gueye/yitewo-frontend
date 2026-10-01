@@ -50,7 +50,7 @@ export default function BusinessListingClient({ business }: { business: any }) {
         )}
 
         <p style={{ color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-          Cette fiche est référencée sur Yitewo à partir de données OpenStreetMap. Le propriétaire peut demander sa validation.
+          Cette fiche est référencée sur Yitewo. Le propriétaire peut demander sa validation.
         </p>
 
         <button

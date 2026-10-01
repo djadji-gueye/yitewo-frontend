@@ -35,9 +35,63 @@ function textFor(p: Partner) {
   return normalize([p.name, p.city, p.zone, p.address, p.phone, p.website, p.type, ...(p.categories || []).map((c) => c.name)].join(" "));
 }
 
+// Groupes de synonymes : si un terme tapé par l'utilisateur appartient à un groupe,
+// on élargit la recherche à toutes les variantes du groupe (nom de boutique insuffisant à indexer).
+const SYNONYM_GROUPS: string[][] = [
+  ["coiffure", "coiffeur", "coiffeuse", "salon de coiffure", "barbier", "tresse", "tresseuse", "tressage"],
+  ["multiservice", "multiservices", "point multiservice", "point multiservices", "cyber", "cybercafe", "photocopie", "impression"],
+  ["bambinerie", "bebe", "bébé", "puericulture", "puériculture", "layette", "jouets", "enfant", "enfance"],
+  ["pressing", "blanchisserie", "teinturerie", "lavage", "nettoyage a sec"],
+  ["epicerie", "épicerie", "boutique", "alimentation generale", "alimentation générale", "depot", "dépôt"],
+  ["pharmacie", "parapharmacie", "medicament", "médicament"],
+  ["boulangerie", "patisserie", "pâtisserie", "pain", "gateau", "gâteau"],
+  ["couture", "tailleur", "couturier", "couturiere", "couturière", "confection"],
+  ["quincaillerie", "bricolage", "outillage"],
+  ["beaute", "beauté", "institut", "onglerie", "esthetique", "esthétique", "manucure", "cosmetique", "cosmétique"],
+  ["telephonie", "téléphonie", "reparation telephone", "réparation téléphone", "accessoires telephone", "gsm"],
+  ["restaurant", "resto", "fast food", "traiteur", "dibiterie", "gargote"],
+  ["wave", "point wave", "agent wave", "cash in", "cash out", "depot retrait", "dépôt retrait", "transfert argent"],
+];
+
+function expandTerm(term: string): string[] {
+  const norm = normalize(term);
+  const variants = new Set([norm]);
+  for (const group of SYNONYM_GROUPS) {
+    const normGroup = group.map(normalize);
+    if (normGroup.some((g) => g.includes(norm) || norm.includes(g))) {
+      normGroup.forEach((g) => variants.add(g));
+    }
+  }
+  return [...variants];
+}
+
 function avatar(p: Partner) {
   if (p.profileImageUrl) return p.profileImageUrl;
   return `https://api.dicebear.com/7.x/${p.type === "Restaurant" ? "rings" : "shapes"}/svg?seed=${encodeURIComponent(p.name)}&backgroundColor=ffffff&size=80`;
+}
+
+// Traduction FR des catégories brutes (souvent issues de tags OSM en anglais type "hairdresser", "convenience"…)
+const CATEGORY_FR: Record<string, string> = {
+  hairdresser: "Salon de coiffure", hair_salon: "Salon de coiffure", barber: "Barbier",
+  convenience: "Épicerie", grocery: "Épicerie", supermarket: "Supermarché",
+  bakery: "Boulangerie", pastry: "Pâtisserie", pharmacy: "Pharmacie", chemist: "Parapharmacie",
+  clothes: "Vêtements", boutique: "Boutique", shoes: "Chaussures",
+  electronics: "Électronique", mobile_phone: "Téléphonie", phone_repair: "Réparation téléphone",
+  restaurant: "Restaurant", fast_food: "Restauration rapide", cafe: "Café",
+  beauty: "Institut de beauté", cosmetics: "Cosmétiques", laundry: "Pressing", dry_cleaning: "Pressing",
+  hardware: "Quincaillerie", doityourself: "Bricolage", tailor: "Couturier",
+  toys: "Jouets", baby_goods: "Bambinerie", childrens_clothes: "Vêtements enfants",
+  multi_service: "Point multiservices", multiservice: "Point multiservices", internet_cafe: "Cybercafé",
+  photo: "Photographie", bank: "Banque", atm: "Distributeur automatique", money_transfer: "Transfert d'argent",
+  wave: "Point Wave", kiosk: "Kiosque", market: "Marché", car_repair: "Garage auto", car_parts: "Pièces auto",
+  furniture: "Meubles", jewelry: "Bijouterie", stationery: "Papeterie", books: "Librairie",
+  florist: "Fleuriste", butcher: "Boucherie", seafood: "Poissonnerie", beverages: "Boissons", alcohol: "Boissons alcoolisées",
+};
+
+function categoryLabel(name?: string) {
+  if (!name) return "";
+  const key = normalize(name).replace(/\s+/g, "_");
+  return CATEGORY_FR[key] || name;
 }
 
 export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
@@ -56,9 +110,16 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
   const mapRef = useRef<any>(null);
   const mapElement = useRef<HTMLDivElement>(null);
   const markersRef = useRef<any[]>([]);
+  const markersById = useRef<Record<string, any>>({});
+  const [flyTarget, setFlyTarget] = useState<Partner | null>(null);
 
   const cities = useMemo(() => [...new Set(partners.map((p) => p.city).filter(Boolean))].sort(), [partners]);
   const categories = useMemo(() => [...new Set(partners.flatMap((p) => (p.categories || []).map((c) => c.name)).filter(Boolean))].sort(), [partners]);
+  const topCategories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    partners.forEach((p) => (p.categories || []).forEach((c) => { if (c.name) counts[c.name] = (counts[c.name] || 0) + 1; }));
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name]) => name);
+  }, [partners]);
   const hasCriteria = !!search.trim() || type !== "all" || !!category;
 
   useEffect(() => {
@@ -78,8 +139,8 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
     if (!hasCriteria && nearMode && userPosition) {
       result = partners.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)).map((p) => ({ ...p, distance: distanceKm(userPosition.lat, userPosition.lng, p.lat!, p.lng!) })).filter((p) => p.distance! <= radius).sort((a, b) => a.distance! - b.distance!);
     } else if (hasCriteria && query) {
-      const terms = query.split(/\s+/).filter(Boolean);
-      result = partners.filter((p) => terms.every((term) => textFor(p).includes(term)));
+      const terms = query.split(/\s+/).filter(Boolean).map(expandTerm);
+      result = partners.filter((p) => { const text = textFor(p); return terms.every((variants) => variants.some((v) => text.includes(v))); });
     } else if (hasCriteria) {
       result = [...partners];
     } else {
@@ -94,6 +155,13 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
     let cancelled = false;
     const init = async () => {
       if (!mapElement.current || typeof window === "undefined") return;
+      if (!document.getElementById("leaflet-css")) {
+        const link = document.createElement("link");
+        link.id = "leaflet-css";
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
       if (!(window as any).L) {
         await new Promise<void>((resolve) => { const script = document.createElement("script"); script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; script.onload = () => resolve(); document.head.appendChild(script); });
       }
@@ -111,13 +179,34 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
     const L = (window as any).L;
-    markersRef.current.forEach((marker) => marker.remove()); markersRef.current = [];
+    markersRef.current.forEach((marker) => marker.remove()); markersRef.current = []; markersById.current = {};
     filtered.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)).forEach((p) => {
       const marker = L.marker([p.lat, p.lng]).addTo(mapRef.current).bindPopup(`<strong>${p.name}</strong><br>${p.type}`).on("click", () => setSelected(p));
       markersRef.current.push(marker);
+      markersById.current[p.id] = marker;
     });
     if (userPosition && !hasCriteria && nearMode) mapRef.current.setView([userPosition.lat, userPosition.lng], 14);
   }, [filtered, mapReady, userPosition, hasCriteria, nearMode]);
+
+  // Clic sur un élément de la liste : bascule sur la carte, centre et ouvre le popup à cet emplacement.
+  useEffect(() => {
+    if (!flyTarget || !mapRef.current || !Number.isFinite(flyTarget.lat) || !Number.isFinite(flyTarget.lng)) return;
+    const t = setTimeout(() => {
+      mapRef.current.invalidateSize();
+      mapRef.current.setView([flyTarget.lat, flyTarget.lng], 17);
+      const marker = markersById.current[flyTarget.id];
+      if (marker) marker.openPopup();
+    }, 80);
+    return () => clearTimeout(t);
+  }, [flyTarget]);
+
+  function goToPartner(p: Partner) {
+    setSelected(p);
+    if (Number.isFinite(p.lat) && Number.isFinite(p.lng)) {
+      setListView(false);
+      setFlyTarget(p);
+    }
+  }
 
   return (
     <main style={{ height: "100vh", display: "flex", flexDirection: "column", background: "var(--surface)", fontFamily: "DM Sans, sans-serif" }}>
@@ -125,26 +214,39 @@ export default function BoutiquesClient({ partners }: { partners: Partner[] }) {
         <div style={{ maxWidth: 1250, margin: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <Link href="/" style={{ color: "#fff", textDecoration: "none" }}>← Accueil</Link>
           <strong style={{ flex: 1, fontSize: 18 }}>🗺️ Commerces proches — {filtered.length}</strong>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un point Wave, commerce, ville…" style={{ minWidth: 240, padding: "9px 12px", borderRadius: 8, border: 0 }} />
-          <select value={city} onChange={(e) => { setCity(e.target.value); setNearMode(false); setSelected(null); }} style={{ padding: 9, borderRadius: 8 }}>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un point Wave, commerce, ville…" style={{ minWidth: 240, padding: "9px 12px", borderRadius: 8, border: 0, color: "#1a1a1a" }} />
+          <select value={city} onChange={(e) => { setCity(e.target.value); setNearMode(false); setSelected(null); }} style={{ padding: 9, borderRadius: 8, color: "#1a1a1a" }}>
             {cities.map((item) => <option key={item}>{item}</option>)}
           </select>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: 9, borderRadius: 8 }}>
-            <option value="">Toutes catégories</option>{categories.map((item) => <option key={item}>{item}</option>)}
+          <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: 9, borderRadius: 8, color: "#1a1a1a" }}>
+            <option value="">Toutes catégories</option>{categories.map((item) => <option key={item} value={item}>{categoryLabel(item)}</option>)}
           </select>
           <div style={{ display: "flex", gap: 4 }}>{(["all", "Marchand", "Restaurant"] as const).map((item) => <button key={item} onClick={() => setType(item)} style={{ padding: "8px 10px", border: 0, borderRadius: 8, background: type === item ? "#fff" : "#ffffff33", color: type === item ? "#E8380D" : "#fff", cursor: "pointer" }}>{item === "all" ? "Tous" : item}</button>)}</div>
           <button onClick={() => setNearMode(!nearMode)} style={{ padding: "8px 12px", border: 0, borderRadius: 8, cursor: "pointer" }}>{nearMode ? "✓ Près de moi" : "📍 Près de chez vous"}</button>
         </div>
         {nearMode && <div style={{ maxWidth: 1250, margin: "8px auto 0", fontSize: 12 }}>Rayon : <input type="range" min="1" max="30" value={radius} onChange={(e) => setRadius(Number(e.target.value))} /> {radius} km {geoLoading ? "· Localisation…" : geoError ? `· ${geoError}` : ""}</div>}
+        {topCategories.length > 0 && (
+          <div className="pills-scroll" style={{ maxWidth: 1250, margin: "10px auto 0" }}>
+            {topCategories.map((name) => (
+              <button
+                key={name}
+                onClick={() => { setCategory(category === name ? "" : name); setSearch(""); }}
+                style={{ whiteSpace: "nowrap", padding: "6px 12px", borderRadius: 999, border: 0, cursor: "pointer", fontSize: 13, background: category === name ? "#fff" : "#ffffff26", color: category === name ? "#E8380D" : "#fff" }}
+              >
+                {categoryLabel(name)}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
       <div style={{ display: "flex", gap: 12, padding: 12, flex: 1, minHeight: 0 }}>
         <div ref={mapElement} style={{ flex: 1, minHeight: 320, borderRadius: 12, overflow: "hidden", display: listView ? "none" : "block" }} />
         <section style={{ width: listView ? "100%" : 360, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
           <button onClick={() => setListView(!listView)} style={{ padding: 10, borderRadius: 8, border: "1px solid var(--border)", background: "#fff" }}>{listView ? "🗺️ Voir la carte" : "📋 Voir la liste"}</button>
-          {filtered.map((p) => <article key={p.id} onClick={() => setSelected(p)} style={{ padding: 12, background: selected?.id === p.id ? "#eff6ff" : "#fff", border: "1px solid var(--border)", borderRadius: 10, cursor: "pointer" }}>
+          {filtered.map((p) => <article key={p.id} onClick={() => goToPartner(p)} style={{ padding: 12, background: selected?.id === p.id ? "#eff6ff" : "#fff", border: "1px solid var(--border)", borderRadius: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}><img src={avatar(p)} alt="" width={42} height={42} style={{ borderRadius: 9 }} /><div><strong>{p.name}</strong><div style={{ color: "var(--muted)", fontSize: 12 }}>{p.type} · {p.zone || p.city}</div></div></div>
             {p.distance !== undefined && <small style={{ color: "#059669" }}>{p.distance.toFixed(1)} km</small>}
-            {p.categories?.length ? <div style={{ marginTop: 6, fontSize: 12, color: "#4f46e5" }}>{p.categories.map((c) => c.name).join(" · ")}</div> : null}
+            {p.categories?.length ? <div style={{ marginTop: 6, fontSize: 12, color: "#4f46e5" }}>{p.categories.map((c) => categoryLabel(c.name)).join(" · ")}</div> : null}
             {p.isBusinessListing ? <Link href={`/business/${p.slug}`} onClick={(e) => e.stopPropagation()} style={{ display: "block", marginTop: 8, textAlign: "center", color: "#2563eb" }}>Voir la fiche</Link> : <Link href={`/shop/${p.slug}`} onClick={(e) => e.stopPropagation()} style={{ display: "block", marginTop: 8, textAlign: "center", color: "var(--brand)" }}>Commander →</Link>}
           </article>)}
           {!filtered.length && <p style={{ padding: 20, background: "#fff", borderRadius: 10 }}>Aucun commerce trouvé. Élargissez le rayon ou essayez une autre recherche.</p>}
